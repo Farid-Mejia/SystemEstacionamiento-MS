@@ -36,3 +36,4 @@ bin/\
 .AppleDouble\
 .LSOverride\
 }
+*.DS_Store*

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Registro de Ingreso</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+	crossorigin="anonymous">
+</head>
+
+<style>
+.header {
+	width: 100%;
+}
+
+.container {
+	background: linear-gradient(#EBB180, #A77F5E);
+}
+
+.custom-navbar {
+	background: linear-gradient(to right, #FBF4B9, #D4CE9D);
+	border-radius: 8px;
+	box-shadow: 0 0 25px #D4CE9D;
+}
+
+.navbar-brand {
+	padding-top: 0%;
+	padding-left: 0%;
+}
+
+#dniControl {
+	width: 70%;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#dniControl input {
+	width: 90%;
+	height: 45%;
+	margin: 10px 20px 0 20px;
+}
+
+.button-group {
+	width: 40%;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+.modal-footer button {
+	
+}
+
+.help-block {
+	color: red;
+	margin: 0px 20px 0px 20px;
+}
+
+.form-group.has-error .form-control-label {
+	color: red;
+}
+
+.form-group.has-error .form-control {
+	border: 1px solid red;
+	box-shadow: 0 0 0 0.2rem rgba(250, 16, 0, 0.18);
+}
+
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 20px;
+	background-color: #f8f9fa;
+	border-bottom: 1px solid #dee2e6;
+}
+
+.header h1 {
+	margin: 0;
+}
+
+.header button {
+	background-color: #dc3545;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+	border-radius: 5px;
+}
+
+.header button:hover {
+	background-color: #c82333;
+}
+
+.parking-container {
+	width: 90%;
+	margin: 20px auto;
+	padding: 20px;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+	text-align: center;
+}
+
+.parking-header {
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	margin-bottom: 20px;
+	position: relative;
+	/* Para que la línea vertical se ajuste a la altura del contenedor */
+}
+
+.header-section {
+	flex: 1;
+	text-align: center;
+}
+
+.vertical-line {
+	position: absolute;
+	left: 50%;
+	width: 2px;
+	background-color: #ccc;
+	height: 100%;
+	transform: translateX(-50%);
+}
+
+hr {
+	margin: 20px 0;
+}
+
+.parking-lots {
+	display: flex;
+	justify-content: space-around;
+	align-items: flex-start;
+	margin-bottom: 20px;
+	position: relative;
+	/* Para que la línea vertical se ajuste a la altura del contenedor */
+}
+
+.parking-lot {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	flex: 1;
+}
+
+.vertical-line-lots {
+	position: absolute;
+	left: 50%;
+	width: 2px;
+	background-color: #ccc;
+	height: 100%;
+	transform: translateX(-50%);
+}
+
+.parking-slot {
+	width: 50px;
+	height: 50px;
+	border: 1px solid #000;
+	margin: 5px;
+	display: inline-block;
+	text-align: center;
+	line-height: 50px;
+	cursor: pointer;
+}
+
+.parking-slot.free {
+	background-color: #90EE90;
+}
+
+.parking-slot.occupied {
+	background-color: #FF6347;
+}
+
+.parking-slot.selected {
+	background-color: darkred; /* Color oscuro para plazas seleccionadas */
+}
+
+#slot1-1, #slot1-4 {
+	background-color: #0069d9;
+	/* Color celeste oscuro por defecto solo para estos slots */
+}
+
+.actions {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.actions button {
+	background-color: #007bff;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	margin: 5px;
+	cursor: pointer;
+	border-radius: 5px;
+}
+
+.actions button:hover {
+	background-color: #0056b3;
+}
+
+/* Media Queries para Responsividad */
+@media ( max-width : 768px) {
+	.parking-lots {
+		align-items: center;
+	}
+	.header-section {
+		width: 100%;
+		margin-bottom: 20px;
+	}
+	#parkingLot1::before {
+		display: block;
+		text-align: center;
+		margin-bottom: 10px;
+		font-size: 1.5em;
+	}
+	#parkingLot2::before {
+		display: block;
+		text-align: center;
+		margin-top: 20px;
+		margin-bottom: 10px;
+		font-size: 1.5em;
+	}
+}
+
+@media ( max-width : 480px) {
+	.header {
+		flex-direction: column;
+		align-items: center;
+	}
+	.header h1 {
+		margin-bottom: 10px;
+	}
+	.header button {
+		width: 100%;
+		text-align: center;
+	}
+	.parking-slot {
+		width: 60px;
+		height: 60px;
+		margin: 5px;
+	}
+	.actions button {
+		width: 100%;
+		text-align: center;
+	}
+}
+</style>
+
+<body>
+
+	<div class="container">
+		<div class="header">
+			<h1 style="text-align: center;">Registro de Ingreso de Vehiculos</h1>
+			<button onclick="goToMenu()">Volver al Menú</button>
+		</div>
+
+		<nav class="navbar custom-navbar" id="tituloDNI">
+			<div class="container-fluid">
+				<a class="navbar-brand">DNI de Usuario de Cibertec: </a>
+				<form class="formDNI" id="dniControl" method="post" action="#">
+					<div class="form-group">
+						<input class="form-control" type="text" placeholder="Escribir DNI" name="dni" maxlength="8" value="" id="dniInput">
+						<small class="help-block"></small>
+					</div>
+				</form>
+			</div>
+		</nav>
+		
+		<!-- Formulario de registro de ingreso -->
+		<div class="container mt-4">
+			<div class="row justify-content-center">
+				<div class="col-md-6">
+					<div class="card">
+						<div class="card-header">
+							<h5>Datos del Vehículo</h5>
+						</div>
+						<div class="card-body">
+							<form id="registroForm">
+								<div class="form-group mb-3">
+									<label for="placa">Placa del Vehículo:</label>
+									<input type="text" class="form-control" id="placa" name="placa" maxlength="7" placeholder="Ej: ABC-123" required>
+									<small class="help-block"></small>
+								</div>
+								<div class="form-group mb-3">
+									<label for="selectedSlot">Plaza Seleccionada:</label>
+									<input type="text" class="form-control" id="selectedSlot" name="selectedSlot" readonly placeholder="Seleccione una plaza">
+								</div>
+								<div class="d-grid gap-2">
+									<button type="submit" class="btn btn-success">Registrar Ingreso</button>
+									<button type="button" class="btn btn-secondary" onclick="goToMenu()">Cancelar</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Área para mostrar mensajes -->
+		<div id="mensaje-area" class="alert alert-info" style="display: none;"></div>
+
+		<input type="hidden" id="selectedSlotInput" value="">
+    <div class="parking-container">
+        <div class="parking-header">
+            <div class="header-section">
+                <h2>SS(Estacionamiento piso 1)</h2>
+            </div>
+            <div class="vertical-line"></div>
+            <div class="header-section">
+                <h2>S1(Estacionamiento Sótano)</h2>
+            </div>
+        </div>
+        <hr>
+        
+        <div class="parking-lots">
+            <div id="parkingLot1" class="parking-lot">
+                <div class="parking-slot free" id="slot1-1" onclick="selectSlot(this)">1</div>
+                <div class="parking-slot free" id="slot1-2" onclick="selectSlot(this)">2</div>
+                <div class="parking-slot free" id="slot1-3" onclick="selectSlot(this)">3</div>
+                <div class="parking-slot free" id="slot1-4" onclick="selectSlot(this)">4</div>
+                <div class="parking-slot free" id="slot1-11" onclick="selectSlot(this)">11</div>
+                <div class="parking-slot free" id="slot1-12" onclick="selectSlot(this)">12</div>
+                <div class="parking-slot free" id="slot1-13" onclick="selectSlot(this)">13</div>
+                <div class="parking-slot free" id="slot1-14" onclick="selectSlot(this)">14</div>
+            </div>
+            <div class="vertical-line-lots"></div>
+            <div id="parkingLot2" class="parking-lot">
+                <div class="parking-slot free" id="slot2-15" onclick="selectSlot(this)">15</div>
+                <div class="parking-slot free" id="slot2-16" onclick="selectSlot(this)">16</div>
+                <div class="parking-slot free" id="slot2-17" onclick="selectSlot(this)">17</div>
+                <div class="parking-slot free" id="slot2-18" onclick="selectSlot(this)">18</div>
+                <div class="parking-slot free" id="slot2-19" onclick="selectSlot(this)">19</div>
+                <div class="parking-slot free" id="slot2-20" onclick="selectSlot(this)">20</div>
+                <div class="parking-slot free" id="slot2-21" onclick="selectSlot(this)">21</div>
+                <div class="parking-slot free" id="slot2-22" onclick="selectSlot(this)">22</div>
+                <div class="parking-slot free" id="slot2-23" onclick="selectSlot(this)">23</div>
+                <div class="parking-slot free" id="slot2-24" onclick="selectSlot(this)">24</div>
+                <div class="parking-slot free" id="slot2-25" onclick="selectSlot(this)">25</div>
+                <div class="parking-slot free" id="slot2-26" onclick="selectSlot(this)">26</div>
+                <div class="parking-slot free" id="slot2-27" onclick="selectSlot(this)">27</div>
+                <div class="parking-slot free" id="slot2-28" onclick="selectSlot(this)">28</div>
+                <div class="parking-slot free" id="slot2-29" onclick="selectSlot(this)">29</div>
+                <div class="parking-slot free" id="slot2-30" onclick="selectSlot(this)">30</div>
+                <div class="parking-slot free" id="slot2-31" onclick="selectSlot(this)">31</div>
+                <div class="parking-slot free" id="slot2-32" onclick="selectSlot(this)">32</div>
+                <div class="parking-slot free" id="slot2-33" onclick="selectSlot(this)">33</div>
+                <div class="parking-slot free" id="slot2-34" onclick="selectSlot(this)">34</div>
+                <div class="parking-slot free" id="slot2-35" onclick="selectSlot(this)">35</div>
+                <div class="parking-slot free" id="slot2-36" onclick="selectSlot(this)">36</div>
+                <div class="parking-slot free" id="slot2-37" onclick="selectSlot(this)">37</div>
+                <div class="parking-slot free" id="slot2-38" onclick="selectSlot(this)">38</div>
+                <div class="parking-slot free" id="slot2-39" onclick="selectSlot(this)">39</div>
+                <div class="parking-slot free" id="slot2-40" onclick="selectSlot(this)">40</div>
+            </div>
+        </div>
+		
+		<script src="script.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-validator/0.5.3/js/bootstrapValidator.min.js"></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+		crossorigin="anonymous"></script>
+		
+	<script>
+        $(document).ready(function() {
+            // Obtener DNI de la URL si existe
+            const urlParams = new URLSearchParams(window.location.search);
+            const dni = urlParams.get('dni');
+            if (dni) {
+                document.getElementById('dniInput').value = dni;
+            }
+            
+            // Iniciar el validador de formulario para DNI
+            $('#dniControl').bootstrapValidator({
+                fields: {
+                    dni: {
+                        validators: {
+                            notEmpty: {
+                                message: 'El DNI es obligatorio'
+                            },
+                            regexp: {
+                                regexp: /^[0-9]{8}$/,
+                                message: 'Los DNI tienen 8 dígitos'
+                            }
+                        }
+                    }
+                },
+                live: 'enabled',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                }
+            });
+            
+            // Iniciar el validador para el formulario de registro
+            $('#registroForm').bootstrapValidator({
+                fields: {
+                    placa: {
+                        validators: {
+                            notEmpty: {
+                                message: 'La placa es obligatoria'
+                            },
+                            regexp: {
+                                regexp: /^[A-Z0-9]{3}-[0-9]{3}$/,
+                                message: 'Formato de placa inválido (Ej: ABC-123)'
+                            }
+                        }
+                    },
+                    selectedSlot: {
+                        validators: {
+                            notEmpty: {
+                                message: 'Debe seleccionar una plaza'
+                            }
+                        }
+                    }
+                },
+                live: 'enabled'
+            }).on('success.form.bv', function(e) {
+                e.preventDefault();
+                registrarIngreso();
+            });
+
+            // Validar el campo DNI en cada cambio
+            $('input[name="dni"]').on('input', function() {
+                $('#dniControl').bootstrapValidator('revalidateField', 'dni');
+            });
+            
+            // Validar la placa en cada cambio
+            $('input[name="placa"]').on('input', function() {
+                $('#registroForm').bootstrapValidator('revalidateField', 'placa');
+            });
+        });
+        
+        // Función para mostrar mensajes
+        function showMessage(message, type = 'info') {
+            const messageArea = document.getElementById('mensaje-area');
+            messageArea.className = `alert alert-${type}`;
+            messageArea.textContent = message;
+            messageArea.style.display = 'block';
+            
+            // Ocultar mensaje después de 5 segundos
+            setTimeout(() => {
+                messageArea.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+	<!-- del los estacionamientos -->
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	    // Setear el valor del input con el número de plaza seleccionado
+	    const selectedSlotInput = document.getElementById('selectedSlotInput');
+	    const selectedSlotDisplay = document.getElementById('selectedSlot');
+	    const parkingSlots = document.querySelectorAll('.parking-slot');
+
+	    parkingSlots.forEach(slot => {
+	        slot.addEventListener('click', function() {
+	            const slotNumber = this.textContent.trim();
+	            selectedSlotInput.value = slotNumber;
+	            selectedSlotDisplay.value = `Plaza ${slotNumber}`;
+	            
+	            // Revalidar el campo de plaza seleccionada
+	            $('#registroForm').bootstrapValidator('revalidateField', 'selectedSlot');
+	        });
+	    });
+	});
+
+	let selectedSlot = null;
+
+	// Función para seleccionar una plaza de estacionamiento
+	function selectSlot(slot) {
+	    // Restablecer el color de todas las plazas previamente seleccionadas
+	    const allSlots = document.querySelectorAll('.parking-slot');
+	    allSlots.forEach(s => {
+	        if (s.classList.contains('selected')) {
+	            s.classList.remove('selected');
+	            if (s.classList.contains('free')) {
+	                s.style.backgroundColor = '#90EE90';
+	            }
+	        }
+	    });
+	    
+	    if (slot.classList.contains('occupied')) {
+	        alert('Esta plaza ya está ocupada');
+	        return;
+	    }
+	    
+	    // Seleccionar la nueva plaza
+	    slot.classList.add('selected');
+	    slot.style.backgroundColor = 'darkred';
+	    selectedSlot = slot;
+	    
+	    // Actualizar los inputs
+	    const slotNumber = slot.textContent.trim();
+	    document.getElementById('selectedSlotInput').value = slotNumber;
+	    document.getElementById('selectedSlot').value = `Plaza ${slotNumber}`;
+	    
+	    // Revalidar el campo
+	    $('#registroForm').bootstrapValidator('revalidateField', 'selectedSlot');
+	}
+
+	// Función para registrar el ingreso
+	function registrarIngreso() {
+	    const dni = document.getElementById('dniInput').value;
+	    const placa = document.getElementById('placa').value;
+	    const plaza = document.getElementById('selectedSlotInput').value;
+	    
+	    if (!dni || !placa || !plaza) {
+	        showMessage('Por favor complete todos los campos', 'danger');
+	        return;
+	    }
+	    
+	    // Simular registro exitoso
+	    if (selectedSlot) {
+	        selectedSlot.classList.remove('selected', 'free');
+	        selectedSlot.classList.add('occupied');
+	        selectedSlot.style.backgroundColor = '#FF6347';
+	    }
+	    
+	    showMessage(`Ingreso registrado exitosamente. DNI: ${dni}, Placa: ${placa}, Plaza: ${plaza}`, 'success');
+	    
+	    // Limpiar formulario
+	    document.getElementById('registroForm').reset();
+	    document.getElementById('selectedSlot').value = '';
+	    document.getElementById('selectedSlotInput').value = '';
+	    selectedSlot = null;
+	    
+	    // Revalidar formulario
+	    $('#registroForm').bootstrapValidator('resetForm', true);
+	}
+
+	// Función para volver al menú
+	function goToMenu() {
+	    const dni = document.getElementById('dniInput').value;
+	    if (dni) {
+	        window.location.href = `MenuPrincipal.html?dni=${dni}`;
+	    } else {
+	        window.location.href = 'MenuPrincipal.html';
+	    }
+	}
+	</script>
+	</body>
+</html>
