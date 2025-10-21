@@ -1,0 +1,1 @@
+{"success":true,"message":"Login exitoso","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2MTAxMTI2NSwiZXhwIjoxNzYxMDk3NjY1fQ.fJUHOV8SIxuhCc4A-Bv_k0UccNE4_LVE4mXtZKMma80","user":{"id":1,"username":"admin","name":"Administrador","role":"admin"}}
