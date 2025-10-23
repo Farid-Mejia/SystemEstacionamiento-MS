@@ -1,0 +1,29 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: auth-server
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          cibertec:
+            registration:
+              client-id: cibertec
+              client-secret: '{noop}s3cr3t'
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes:
+                - user.read
+                - user.write
+            token:
+              access-token-time-to-live: PT5M
+
+app:
+  jwk:
+    keystore-path: 'classpath:as-keystore.p12'
+    keystore-password: 'changeit'
+    key-alias: 'as-rsa'
+    key-password: 'changeit'
