@@ -230,9 +230,6 @@ temp/
 *.key
 *.crt
 
-# Docker
-.dockerignore
-
 # Kubernetes
 *.yaml.bak
 *.yml.bak
