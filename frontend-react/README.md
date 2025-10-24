@@ -12,13 +12,15 @@ Interfaz web para la gestión del sistema de estacionamiento desarrollada con Re
 ## 🚀 Instalación y Ejecución
 
 ### 1. Instalar dependencias
+
 ```bash
 npm install
 ```
 
 ### 2. Ejecutar en modo desarrollo
+
 ```bash
-npm run dev
+npm start
 ```
 
 La aplicación estará disponible en: `http://localhost:5173`
@@ -28,11 +30,13 @@ La aplicación estará disponible en: `http://localhost:5173`
 Para acceder al sistema, utiliza las siguientes credenciales:
 
 ### Administrador
+
 - **DNI:** `12345678`
 - **Contraseña:** `password123`
 - **Nombre:** Juan Carlos Pérez García
 
 ### Operador
+
 - **DNI:** `87654321`
 - **Contraseña:** `password123`
 - **Nombre:** María Elena López Martínez
