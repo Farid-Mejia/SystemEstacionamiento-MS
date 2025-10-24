@@ -1,11 +1,13 @@
 spring:
   application:
     name: estacionamientos-ms
+
   datasource:
-    url: jdbc:mysql://localhost:3306/db_estacionamientos?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/db_estacionamientos?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
     password: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,6 +15,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
 
 server:
   port: 8090
