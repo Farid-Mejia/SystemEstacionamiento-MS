@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Builder
 public class VisitRequestDto {
     /* los valores que van a salir, que le piden*/
-    private int id;
+
     private String dni;
     private boolean existe;
     private boolean registroActivo;

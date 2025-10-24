@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface VisitanteRepository extends JpaRepository<Visitante, Integer> {
     Optional<Visitante> findByDniVisitante(String dni);
+    Optional<Visitante> findByIdVisitante(int id);
 
 }
