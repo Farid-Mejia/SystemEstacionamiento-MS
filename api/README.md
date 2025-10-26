@@ -1,15 +1,19 @@
 # 🚗 ParkSystem API - Documentación
 
 ## Descripción
+
 API REST para el sistema de gestión de estacionamiento de CIBERTEC. Permite gestionar usuarios, vehículos, espacios de estacionamiento y sesiones de parking.
 
 ## 🚀 Cómo ejecutar la API
 
 ### Prerrequisitos
+
 - Node.js (versión 18 o superior)
+
 - npm
 
 ### Instalación y ejecución
+
 ```bash
 # Instalar dependencias
 npm install
@@ -18,70 +22,64 @@ npm install
 npm start
 ```
 
-La API se ejecutará en: **http://localhost:3000**
+La API se ejecutará en: **<http://localhost:3000>**
 
 ## 🔐 Autenticación
 
-La API utiliza un sistema de autenticación con JWT que incluye:
+La API utiliza autenticación JWT (JSON Web Tokens). Para acceder a los endpoints protegidos, necesitas:
 
-- **Access Token**: Token de corta duración (15 minutos) para acceder a endpoints protegidos
-- **Refresh Token**: Token de larga duración (7 días) para renovar access tokens
-
-### Flujo de autenticación:
-
-1. **Login**: Obtén access_token y refresh_token con credenciales válidas
-2. **Acceso**: Usa el access_token en el header `Authorization: Bearer <access_token>`
-3. **Renovación**: Cuando el access_token expire, usa el refresh_token para obtener uno nuevo
-4. **Logout**: Cierra sesión (en implementación real invalidaría los tokens)
+1. Hacer login con credenciales válidas
+2. Usar el token recibido en el header `Authorization: Bearer <token>`
 
 ## 📊 Datos de Prueba
 
 ### Credenciales de Operadores
-| Usuario | Contraseña | Rol |
-|---------|------------|-----|
-| admin | 123456 | admin |
-| operador01 | 123456 | operator |
-| operador02 | 123456 | operator |
 
-### DNIs de Usuarios de Prueba
-| DNI | Nombre | Email |
-|-----|--------|-------|
-| 12345678 | Juan Pérez | juan.perez@cibertec.edu.pe |
-| 87654321 | María García | maria.garcia@cibertec.edu.pe |
-| 11223344 | Carlos López | carlos.lopez@cibertec.edu.pe |
-| 44332211 | Ana Rodríguez | ana.rodriguez@cibertec.edu.pe |
+| Usuario    | Contraseña | Rol      |
+| ---------- | ---------- | -------- |
+| admin      | 123456     | admin    |
+| operador01 | 123456     | operator |
+| operador02 | 123456     | operator |
+
+### DNIs de Visitantes de Prueba
+
+| DNI      | Nombres        | Apellido Paterno | Apellido Materno |
+| -------- | -------------- | ---------------- | ---------------- |
+| 11111111 | Juan Carlos    | Pérez            | García           |
+| 22222222 | María Elena    | López            | Martínez         |
+| 33333333 | Carlos Alberto | Rodríguez        | Fernández        |
 
 ### Vehículos Registrados
-| Placa | Propietario | Modelo | Color |
-|-------|-------------|--------|-------|
-| ABC-123 | Juan Pérez | Toyota Corolla | Blanco |
-| XYZ-789 | María García | Honda Civic | Azul |
-| DEF-456 | Carlos López | Nissan Sentra | Rojo |
+
+| Placa   | Propietario                        | Modelo         | Color  |
+| ------- | ---------------------------------- | -------------- | ------ |
+| ABC-123 | Juan Carlos Pérez García           | Toyota Corolla | Blanco |
+| XYZ-789 | María Elena López Martínez         | Honda Civic    | Azul   |
+| DEF-456 | Carlos Alberto Rodríguez Fernández | Nissan Sentra  | Rojo   |
 
 ## 📋 Endpoints de la API
 
 ### 1. Información General
 
 #### GET /
+
 Obtiene información general de la API.
 
 **Request:**
+
 ```bash
 curl -X GET "http://localhost:3000/"
 ```
 
 **Response:**
+
 ```json
 {
   "message": "ParkSystem API funcionando correctamente",
   "version": "1.0.0",
   "endpoints": {
-    "auth": {
-      "login": "/api/auth/login",
-      "logout": "/api/auth/logout",
-      "refresh": "/api/auth/refresh"
-    },
-    "users": "/api/users/dni/:dni",
+    "auth": "/api/auth/login",
+    "visitors": "/api/visitors/dni/:dni",
     "parking": {
       "spaces": "/api/parking/spaces",
       "entry": "/api/parking/entry",
@@ -94,9 +92,11 @@ curl -X GET "http://localhost:3000/"
 ### 2. Autenticación
 
 #### POST /api/auth/login
-Autentica un operador y devuelve tokens de acceso y renovación.
+
+Autentica un operador y devuelve un token JWT.
 
 **Request:**
+
 ```bash
 curl -X POST "http://localhost:3000/api/auth/login" \
   -H "Content-Type: application/json" \
@@ -107,24 +107,25 @@ curl -X POST "http://localhost:3000/api/auth/login" \
 ```
 
 **Response exitoso (200):**
+
 ```json
 {
   "success": true,
   "message": "Login exitoso",
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "08c2eba235021e361e7b197a543066f3...",
-  "expires_in": 900,
-  "token_type": "Bearer",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": 1,
     "username": "admin",
-    "name": "Administrador",
-    "role": "admin"
+    "first_name": "Juan Carlos",
+    "paternal_last_name": "Pérez",
+    "maternal_last_name": "García",
+    "role": "ADMIN"
   }
 }
 ```
 
 **Response error (401):**
+
 ```json
 {
   "success": false,
@@ -132,121 +133,48 @@ curl -X POST "http://localhost:3000/api/auth/login" \
 }
 ```
 
-#### POST /api/auth/logout
-Cierra la sesión del usuario autenticado.
+### 3. Gestión de Visitantes
+
+#### GET /api/visitors/dni/:dni
+
+Consulta un visitante por su DNI.
 
 **Requiere autenticación:** ✅
 
 **Request:**
+
 ```bash
-curl -X POST "http://localhost:3000/api/auth/logout" \
+curl -X GET "http://localhost:3000/api/visitors/dni/11111111" \
   -H "Authorization: Bearer <tu_token_aqui>"
 ```
 
 **Response exitoso (200):**
+
 ```json
 {
   "success": true,
-  "message": "Logout exitoso",
-  "user": {
-    "username": "admin",
-    "name": "admin"
-  }
-}
-```
-
-**Response error (401):**
-```json
-{
-  "success": false,
-  "message": "Token de acceso requerido"
-}
-```
-
-#### POST /api/auth/refresh
-Renueva el access token usando un refresh token válido.
-
-**Request:**
-```bash
-curl -X POST "http://localhost:3000/api/auth/refresh" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refresh_token": "08c2eba235021e361e7b197a543066f3..."
-  }'
-```
-
-**Response exitoso (200):**
-```json
-{
-  "success": true,
-  "message": "Token renovado exitosamente",
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expires_in": 900,
-  "token_type": "Bearer"
-}
-```
-
-**Response error (400):**
-```json
-{
-  "success": false,
-  "message": "Refresh token es requerido"
-}
-```
-
-**Response error (401):**
-```json
-{
-  "success": false,
-  "message": "Refresh token inválido"
-}
-```
-
-### 3. Gestión de Usuarios
-
-#### GET /api/users/dni/:dni
-Consulta un usuario por su DNI.
-
-**Requiere autenticación:** ✅
-
-**Request:**
-```bash
-curl -X GET "http://localhost:3000/api/users/dni/12345678" \
-  -H "Authorization: Bearer <tu_token_aqui>"
-```
-
-**Response exitoso (200):**
-```json
-{
-  "success": true,
-  "message": "Usuario encontrado",
-  "user": {
+  "message": "Visitante encontrado",
+  "visitor": {
     "id": 1,
-    "dni": "12345678",
-    "name": "Juan Pérez",
-    "email": "juan.perez@cibertec.edu.pe",
-    "vehicles": [
-      {
-        "id": 1,
-        "user_id": 1,
-        "license_plate": "ABC-123",
-        "model": "Toyota Corolla",
-        "color": "Blanco"
-      }
-    ]
+    "dni": "11111111",
+    "first_name": "Juan Carlos",
+    "paternal_last_name": "Pérez",
+    "maternal_last_name": "García"
   }
 }
 ```
 
 **Response error (404):**
+
 ```json
 {
   "success": false,
-  "message": "Usuario no encontrado con el DNI proporcionado"
+  "message": "Visitante no encontrado con el DNI proporcionado"
 }
 ```
 
 **Response error (400) - DNI inválido:**
+
 ```json
 {
   "success": false,
@@ -257,17 +185,20 @@ curl -X GET "http://localhost:3000/api/users/dni/12345678" \
 ### 4. Gestión de Estacionamiento
 
 #### GET /api/parking/spaces
+
 Obtiene todos los espacios de estacionamiento.
 
 **Requiere autenticación:** ✅
 
 **Request:**
+
 ```bash
 curl -X GET "http://localhost:3000/api/parking/spaces" \
   -H "Authorization: Bearer <tu_token_aqui>"
 ```
 
 **Response exitoso (200):**
+
 ```json
 {
   "success": true,
@@ -275,62 +206,72 @@ curl -X GET "http://localhost:3000/api/parking/spaces" \
   "spaces": [
     {
       "id": 1,
-      "space_code": "SS-01",
-      "floor_level": "SS",
-      "is_available": true
+      "space_number": 1,
+      "floor": "SS",
+      "is_disabled_space": true,
+      "status": "available"
     },
     {
       "id": 2,
-      "space_code": "SS-02",
-      "floor_level": "SS",
-      "is_available": true
+      "space_number": 2,
+      "floor": "SS",
+      "is_disabled_space": true,
+      "status": "available"
     }
   ],
   "ss_spaces": [...],
   "s1_spaces": [...],
   "summary": {
-    "total": 34,
-    "available": 30,
-    "occupied": 4
+    "total": 40,
+    "available": 36,
+    "occupied": 4,
+    "maintenance": 0
   }
 }
 ```
 
 #### POST /api/parking/entry
+
 Registra el ingreso de un vehículo al estacionamiento.
 
 **Requiere autenticación:** ✅
 
 **Request:**
+
 ```bash
 curl -X POST "http://localhost:3000/api/parking/entry" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <tu_token_aqui>" \
   -d '{
-    "dni": "11223344",
-    "license_plate": "TEST-123",
-    "space_id": 1
+    "dni": "11111111",
+    "license_plate": "ABC-123",
+    "parking_space_id": 1
   }'
 ```
 
 **Response exitoso (201):**
+
 ```json
 {
   "success": true,
   "message": "Ingreso registrado exitosamente",
   "session": {
     "id": 4,
-    "user": {
-      "dni": "11223344",
-      "name": "Carlos López"
+    "visitor": {
+      "dni": "11111111",
+      "first_name": "Juan Carlos",
+      "paternal_last_name": "Pérez",
+      "maternal_last_name": "García"
     },
     "vehicle": {
-      "license_plate": "TEST-123",
-      "model": "No especificado"
+      "license_plate": "ABC-123",
+      "model": "Toyota Corolla"
     },
-    "space": {
-      "code": "SS-01",
-      "floor": "SS"
+    "parking_space": {
+      "id": 1,
+      "space_number": 1,
+      "floor": "SS",
+      "is_disabled_space": true
     },
     "entry_time": "2025-10-21T01:48:44.694Z"
   }
@@ -338,6 +279,7 @@ curl -X POST "http://localhost:3000/api/parking/entry" \
 ```
 
 **Response error (400) - Espacio ocupado:**
+
 ```json
 {
   "success": false,
@@ -345,48 +287,56 @@ curl -X POST "http://localhost:3000/api/parking/entry" \
 }
 ```
 
-**Response error (404) - Usuario no encontrado:**
+**Response error (404) - Visitante no encontrado:**
+
 ```json
 {
   "success": false,
-  "message": "Usuario no encontrado con el DNI proporcionado"
+  "message": "Visitante no encontrado con el DNI proporcionado"
 }
 ```
 
 #### POST /api/parking/exit
+
 Registra la salida de un vehículo del estacionamiento.
 
 **Requiere autenticación:** ✅
 
 **Request:**
+
 ```bash
 curl -X POST "http://localhost:3000/api/parking/exit" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <tu_token_aqui>" \
   -d '{
-    "dni": "11223344",
-    "license_plate": "TEST-123"
+    "dni": "11111111",
+    "license_plate": "ABC-123"
   }'
 ```
 
 **Response exitoso (200):**
+
 ```json
 {
   "success": true,
   "message": "Salida registrada exitosamente",
   "session": {
     "id": 4,
-    "user": {
-      "dni": "11223344",
-      "name": "Carlos López"
+    "visitor": {
+      "dni": "11111111",
+      "first_name": "Juan Carlos",
+      "paternal_last_name": "Pérez",
+      "maternal_last_name": "García"
     },
     "vehicle": {
-      "license_plate": "TEST-123",
-      "model": "No especificado"
+      "license_plate": "ABC-123",
+      "model": "Toyota Corolla"
     },
-    "space": {
-      "code": "SS-01",
-      "floor": "SS"
+    "parking_space": {
+      "id": 1,
+      "space_number": 1,
+      "floor": "SS",
+      "is_disabled_space": true
     },
     "entry_time": "2025-10-21T01:48:44.694Z",
     "exit_time": "2025-10-21T01:48:57.715Z",
@@ -397,6 +347,7 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 ```
 
 **Response error (404) - Sesión no encontrada:**
+
 ```json
 {
   "success": false,
@@ -407,7 +358,9 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 ## 🔒 Manejo de Errores de Autenticación
 
 ### Sin token
+
 **Response (401):**
+
 ```json
 {
   "success": false,
@@ -416,7 +369,9 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 ```
 
 ### Token inválido
+
 **Response (403):**
+
 ```json
 {
   "success": false,
@@ -426,15 +381,15 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 
 ## 📊 Códigos de Estado HTTP
 
-| Código | Descripción |
-|--------|-------------|
-| 200 | OK - Solicitud exitosa |
-| 201 | Created - Recurso creado exitosamente |
-| 400 | Bad Request - Datos inválidos |
-| 401 | Unauthorized - Credenciales inválidas |
-| 403 | Forbidden - Token inválido |
-| 404 | Not Found - Recurso no encontrado |
-| 500 | Internal Server Error - Error del servidor |
+| Código | Descripción                                |
+| ------ | ------------------------------------------ |
+| 200    | OK - Solicitud exitosa                     |
+| 201    | Created - Recurso creado exitosamente      |
+| 400    | Bad Request - Datos inválidos              |
+| 401    | Unauthorized - Credenciales inválidas      |
+| 403    | Forbidden - Token inválido                 |
+| 404    | Not Found - Recurso no encontrado          |
+| 500    | Internal Server Error - Error del servidor |
 
 ## 🧪 Ejemplos de Uso Completo
 
@@ -447,8 +402,8 @@ TOKEN=$(curl -s -X POST "http://localhost:3000/api/auth/login" \
   -d '{"username": "admin", "password": "123456"}' | \
   jq -r '.token')
 
-# 2. Consultar usuario
-curl -X GET "http://localhost:3000/api/users/dni/12345678" \
+# 2. Consultar visitante
+curl -X GET "http://localhost:3000/api/visitors/dni/11111111" \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Ver espacios disponibles
@@ -460,9 +415,9 @@ curl -X POST "http://localhost:3000/api/parking/entry" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
-    "dni": "12345678",
+    "dni": "11111111",
     "license_plate": "ABC-123",
-    "space_id": 2
+    "parking_space_id": 2
   }'
 
 # 5. Registrar salida
@@ -470,7 +425,7 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
-    "dni": "12345678",
+    "dni": "11111111",
     "license_plate": "ABC-123"
   }'
 ```
@@ -478,7 +433,7 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 ## 📝 Notas Importantes
 
 1. **Tokens JWT**: Los tokens tienen una duración de 1 día (24 horas)
-2. **Espacios de estacionamiento**: Hay 34 espacios distribuidos en 2 pisos (SS y S1)
+2. **Espacios de estacionamiento**: Hay 40 espacios distribuidos en 2 pisos (SS: 1-14, S1: 15-40)
 3. **Cálculo de tarifas**: Se cobra S/5.00 por hora o fracción
 4. **Vehículos nuevos**: Si un vehículo no está registrado, se crea automáticamente
 5. **Validaciones**: Todos los endpoints validan los datos de entrada
@@ -487,12 +442,16 @@ curl -X POST "http://localhost:3000/api/parking/exit" \
 ## 🛠️ Tecnologías Utilizadas
 
 - **Node.js** - Runtime de JavaScript
+
 - **Express.js** - Framework web
+
 - **JWT** - Autenticación
+
 - **bcrypt** - Encriptación de contraseñas
+
 - **CORS** - Cross-Origin Resource Sharing
 
 ---
 
-**Versión:** 1.0.0  
+**Versión:** 1.0.0\
 **Última actualización:** Octubre 2024
