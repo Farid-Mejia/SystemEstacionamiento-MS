@@ -1,4 +1,4 @@
-import { User, Visitor, ParkingSpace, Vehicle, ParkingSession } from '@/types'
+import { User, Visitor, ParkingSpace, Vehicle, ParkingSession } from '@/types';
 
 export const mockUsers: User[] = [
   {
@@ -21,7 +21,7 @@ export const mockUsers: User[] = [
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
-]
+];
 
 export const mockVisitors: Visitor[] = [
   {
@@ -51,14 +51,14 @@ export const mockVisitors: Visitor[] = [
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
-]
+];
 
 export const mockParkingSpaces: ParkingSpace[] = [
   ...Array.from({ length: 14 }, (_, i) => ({
     id: i + 1,
     space_number: i + 1,
     floor: 'SS' as const,
-    status: i < 8 ? 'available' as const : 'occupied' as const,
+    status: i < 8 ? ('available' as const) : ('occupied' as const),
     is_disabled_space: i === 0 || i === 1,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
@@ -67,17 +67,17 @@ export const mockParkingSpaces: ParkingSpace[] = [
     id: i + 15,
     space_number: i + 15,
     floor: 'S1' as const,
-    status: i < 15 ? 'available' as const : 'occupied' as const,
+    status: i < 15 ? ('available' as const) : ('occupied' as const),
     is_disabled_space: i === 0 || i === 1,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   })),
-]
+];
 
 export const mockVehicles: Vehicle[] = [
   {
     id: 1,
-    license_plate: 'ABC-123',
+    license_plate: 'ABC123',
     owner_dni: '11111111',
     owner_name: 'Carlos López',
     vehicle_type: 'car',
@@ -89,7 +89,7 @@ export const mockVehicles: Vehicle[] = [
   },
   {
     id: 2,
-    license_plate: 'DEF-456',
+    license_plate: 'DEF456',
     owner_dni: '22222222',
     owner_name: 'Ana Martínez',
     vehicle_type: 'car',
@@ -101,7 +101,7 @@ export const mockVehicles: Vehicle[] = [
   },
   {
     id: 3,
-    license_plate: 'GHI-789',
+    license_plate: 'GHI789',
     owner_dni: '33333333',
     owner_name: 'Pedro Rodríguez',
     vehicle_type: 'motorcycle',
@@ -111,7 +111,7 @@ export const mockVehicles: Vehicle[] = [
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
-]
+];
 
 export const mockSessions: ParkingSession[] = [
   {
@@ -158,4 +158,4 @@ export const mockSessions: ParkingSession[] = [
     created_at: '2024-01-15T12:00:00Z',
     updated_at: '2024-01-15T12:00:00Z',
   },
-]
+];

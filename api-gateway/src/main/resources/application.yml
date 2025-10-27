@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: ms-vehiculo
+              uri: lb://ms-vehiculo
+              predicates:
+                - Path=/api/hurtado/vehiculo/**
+            - id: ms-envio
+              uri: lb://ms-envio
+              predicates:
+                - Path=/api/hurtado/envio/**
+server:
+  port: 8000
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+  service-url:
+    defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true

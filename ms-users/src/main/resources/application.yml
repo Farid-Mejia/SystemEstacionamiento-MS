@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: ms-autentication
+    name: ms-users
 
   # Configuración de base de datos MySQL (Docker)
   datasource:

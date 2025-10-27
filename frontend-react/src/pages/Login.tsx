@@ -15,7 +15,7 @@ export function Login() {
   const { login } = useAuthStore();
 
   const [formData, setFormData] = useState({
-    dni: "",
+    username: "",
     password: "",
   });
 
@@ -25,10 +25,8 @@ export function Login() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.dni.trim()) {
-      newErrors.dni = "El DNI es requerido";
-    } else if (!/^\d{8}$/.test(formData.dni)) {
-      newErrors.dni = "El DNI debe tener 8 dígitos";
+    if (!formData.username.trim()) {
+      newErrors.username = "El nombre de usuario es requerido";
     }
 
     if (!formData.password.trim()) {
@@ -47,21 +45,35 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      // Buscar el usuario por DNI en lugar de username
+      // Autenticar con username y password
       const response = await authService.login({
-        username: formData.dni, // El servicio espera username, pero enviamos el DNI
+        username: formData.username, // Enviamos el username directamente
         password: formData.password,
       });
 
-      if (response.success && response.data) {
-        login(response.data.user, response.data.token);
-        toast.success("Inicio de sesión exitoso");
-        navigate("/dashboard");
+      if (response.success) {
+        // Manejar tanto la estructura envuelta como la directa
+        const authData = response.data || response;
+        
+        if (authData && authData.token && authData.user) {
+          // Guardar en localStorage usando las funciones del authService
+          authService.setStoredToken(authData.token);
+          authService.setStoredUser(authData.user);
+          
+          // Actualizar el store de Zustand
+          login(authData.user, authData.token);
+          
+          toast.success(authData.message || "Inicio de sesión exitoso");
+          navigate("/dashboard");
+        } else {
+          toast.error("Respuesta del servidor incompleta");
+        }
       } else {
         toast.error(response.message || "Error al iniciar sesión");
       }
-    } catch {
-      toast.error("Error de conexión");
+    } catch (error) {
+      console.error("Error en login:", error);
+      toast.error("Error de conexión con el servidor");
     } finally {
       setIsLoading(false);
     }
@@ -93,18 +105,17 @@ export function Login() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dni">DNI</Label>
+                  <Label htmlFor="username">Usuario</Label>
                   <Input
-                    id="dni"
+                    id="username"
                     type="text"
-                    placeholder="12345678"
-                    value={formData.dni}
-                    onChange={(e) => handleInputChange("dni", e.target.value)}
-                    className={errors.dni ? "border-red-500" : ""}
-                    maxLength={8}
+                    placeholder="admin"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    className={errors.username ? "border-red-500" : ""}
                   />
-                  {errors.dni && (
-                    <p className="text-sm text-red-500">{errors.dni}</p>
+                  {errors.username && (
+                    <p className="text-sm text-red-500">{errors.username}</p>
                   )}
                 </div>
 
@@ -143,12 +154,12 @@ export function Login() {
                 </h4>
                 <div className="text-xs text-gray-600 space-y-1">
                   <div>
-                    Admin: DNI <strong>12345678</strong> / Contraseña:{" "}
-                    <strong>password123</strong>
+                    Admin: Usuario <strong>admin</strong> / Contraseña:{" "}
+                    <strong>admin123</strong>
                   </div>
                   <div>
-                    Operador: DNI <strong>87654321</strong> / Contraseña:{" "}
-                    <strong>password123</strong>
+                    Operador: Usuario <strong>operator</strong> / Contraseña:{" "}
+                    <strong>operator123</strong>
                   </div>
                 </div>
               </div>

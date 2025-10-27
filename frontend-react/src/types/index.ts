@@ -2,25 +2,27 @@ export interface User {
   id: number
   dni: string
   username: string
-  first_name: string
-  paternal_last_name: string
-  maternal_last_name: string
-  created_at: string
-  updated_at: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
+  role: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Visitor {
   id: number
   dni: string
-  first_name: string
-  paternal_last_name: string
-  maternal_last_name: string
-  created_at: string
-  updated_at: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface AuthResponse {
   success: boolean
+  message: string
   token: string
   user: User
 }
@@ -33,58 +35,58 @@ export interface LoginRequest {
 
 export interface Vehicle {
   id: number
-  license_plate: string
-  owner_dni: string
-  owner_name: string
-  vehicle_type: string
+  licensePlate: string
+  ownerDni: string
+  ownerName: string
+  vehicleType: string
   color: string
   brand: string
   model: string
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ParkingSpace {
   id: number
-  space_number: number
+  spaceNumber: number
   floor: 'SS' | 'S1'
   status: 'available' | 'occupied' | 'maintenance'
-  is_disabled_space: boolean
-  created_at: string
-  updated_at: string
+  isDisabledSpace: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ParkingSession {
   id: number
-  license_plate: string
-  visitor_id: number
-  parking_space_id: number
-  entry_time: string
-  exit_time?: string
-  duration_seconds?: number
+  licensePlate: string
+  visitorId: number
+  parkingSpaceId: number
+  entryTime: string
+  exitTime?: string
+  durationSeconds?: number
   status: 'active' | 'completed' | 'cancelled'
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface VehicleRegistrationRequest {
-  license_plate: string
-  space_number: number
-  user_dni: string
-  needs_disabled_space?: boolean
+  licensePlate: string
+  spaceNumber: number
+  userDni: string
+  needsDisabledSpace?: boolean
 }
 
 export interface VehicleEntryRequest {
-  license_plate: string
-  space_number: number
-  entry_time: string
-  visitor_id: number
-  needs_disabled_space?: boolean
+  licensePlate: string
+  spaceNumber: number
+  entryTime: string
+  visitorId: number
+  needsDisabledSpace?: boolean
 }
 
 export interface VehicleExitRequest {
-  license_plate: string
-  exit_time: string
+  licensePlate: string
+  exitTime: string
 }
 
 export interface ApiResponse<T = any> {
@@ -101,8 +103,8 @@ export interface ParkingFloor {
 }
 
 export interface VehicleInfo {
-  license_plate: string
-  space_number: number
-  entry_time?: string
-  duration_seconds?: number
+  licensePlate: string
+  spaceNumber: number
+  entryTime?: string
+  durationSeconds?: number
 }
