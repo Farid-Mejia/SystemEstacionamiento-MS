@@ -6,14 +6,20 @@ spring:
       server:
         webflux:
           routes:
+            - id: ms-users
+              uri: lb://ms-users
+              predicates:
+                - Path=/api/auth/**
             - id: ms-vehiculo
               uri: lb://ms-vehiculo
               predicates:
-                - Path=/api/hurtado/vehiculo/**
+                - Path=/api/vehiculo/**
             - id: ms-envio
               uri: lb://ms-envio
               predicates:
-                - Path=/api/hurtado/envio/**
+                - Path=/api/envio/**
+              default-filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
   port: 8000
 
@@ -22,6 +28,6 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   service-url:
-    defaultZone: http://localhost:8761/eureka
+    defaultZone: http://localhost:8777/eureka
   instance:
     prefer-ip-address: true
