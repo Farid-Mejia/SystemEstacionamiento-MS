@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/db_estacionamientos?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: mysql
+    password: mysqlmac
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -28,6 +28,6 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8777/eureka/
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
