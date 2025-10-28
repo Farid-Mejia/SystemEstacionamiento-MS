@@ -1,7 +1,7 @@
-import { LoginRequest, AuthResponse, ApiResponse } from "@/types";
+import { LoginRequest, AuthResponse, ApiResponse } from '@/types';
 
 // Configuración de la API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
 const BASIC_USERNAME = import.meta.env.VITE_API_BASIC_USERNAME || 'parksystem_api';
 const BASIC_PASSWORD = import.meta.env.VITE_API_BASIC_PASSWORD || 'ParkSystem2024!SecureAPI';
@@ -10,10 +10,7 @@ const BASIC_PASSWORD = import.meta.env.VITE_API_BASIC_PASSWORD || 'ParkSystem202
 const basicAuthCredentials = btoa(`${BASIC_USERNAME}:${BASIC_PASSWORD}`);
 
 // Función para realizar peticiones HTTP con Basic Auth
-const apiRequest = async <T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> => {
+const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
@@ -23,7 +20,7 @@ const apiRequest = async <T>(
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${basicAuthCredentials}`,
+        Authorization: `Basic ${basicAuthCredentials}`,
         ...options.headers,
       },
     });
@@ -40,22 +37,21 @@ const apiRequest = async <T>(
     }
 
     const data = await response.json();
-    
+
     // Si la respuesta del backend ya tiene la estructura correcta
     if (data.success !== undefined) {
       return data;
     }
-    
+
     // Si no, envolvemos la respuesta
     return {
       success: true,
       data,
       message: 'Operación exitosa',
     };
-
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
         return {
@@ -64,14 +60,14 @@ const apiRequest = async <T>(
           error: 'La petición tardó demasiado en responder',
         };
       }
-      
+
       return {
         success: false,
         message: 'Error de conexión',
         error: error.message,
       };
     }
-    
+
     return {
       success: false,
       message: 'Error desconocido',
@@ -83,7 +79,7 @@ const apiRequest = async <T>(
 export const authService = {
   async login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await apiRequest<AuthResponse>('/api/auth/login', {
+      const response = await apiRequest<AuthResponse>('/api/users/login', {
         method: 'POST',
         body: JSON.stringify({
           username: credentials.username, // Corregido: ahora enviamos username como espera el backend
@@ -95,7 +91,7 @@ export const authService = {
       if (response.success && response.data) {
         return response;
       }
-      
+
       // Si la respuesta del backend viene directamente sin envolver en data
       if (response.success && (response as any).token) {
         return {
@@ -117,7 +113,7 @@ export const authService = {
 
   async validateToken(token: string): Promise<ApiResponse<boolean>> {
     try {
-      const response = await apiRequest<{ valid: boolean }>('/api/auth/validate', {
+      const response = await apiRequest<{ valid: boolean }>('/api/users/validate', {
         method: 'POST',
         body: JSON.stringify({ token }),
       });
@@ -146,7 +142,7 @@ export const authService = {
 
   async refreshToken(token: string): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await apiRequest<AuthResponse>('/api/auth/refresh', {
+      const response = await apiRequest<AuthResponse>('/api/users/refresh', {
         method: 'POST',
         body: JSON.stringify({ token }),
       });

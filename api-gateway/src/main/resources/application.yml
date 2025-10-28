@@ -9,15 +9,7 @@ spring:
             - id: ms-users
               uri: lb://ms-users
               predicates:
-                - Path=/api/auth/**
-            - id: ms-vehiculo
-              uri: lb://ms-vehiculo
-              predicates:
-                - Path=/api/vehiculo/**
-            - id: ms-envio
-              uri: lb://ms-envio
-              predicates:
-                - Path=/api/envio/**
+                - Path=/api/users/**
               default-filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
@@ -28,6 +20,6 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   service-url:
-    defaultZone: http://localhost:8777/eureka
+    defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
