@@ -12,6 +12,11 @@ spring:
                 - Path=/api/users/**
               default-filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            - id: estacionamientos-ms
+              uri: lb://estacionamientos-ms
+              predicates:
+                - Path=/api/parking/**
+
 server:
   port: 8000
 
