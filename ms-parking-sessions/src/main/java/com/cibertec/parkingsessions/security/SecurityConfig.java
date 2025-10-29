@@ -31,6 +31,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/parking-sessions/health").permitAll()
+                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/parking-sessions/**").authenticated()
                 .anyRequest().permitAll()
             )

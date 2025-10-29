@@ -335,7 +335,7 @@ export const parkingService = {
 
   // Verificar si un DNI está en uso
   async checkDniInUse(dni: string): Promise<ApiResponse<any>> {
-    return await apiRequest<any>(`/api/visitors/check-dni/${dni}`);
+    return await apiRequest<any>(`/api/visitors/dni/${dni}`);
   },
 
   // Verificar si una placa está en uso
