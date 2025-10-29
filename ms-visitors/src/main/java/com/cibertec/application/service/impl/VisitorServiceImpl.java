@@ -8,7 +8,7 @@ import com.cibertec.web.dto.VisitorAPIResponse;
 import com.cibertec.web.dto.VisitorRequestDto;
 import com.cibertec.web.dto.VisitorResponseDto;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,16 +17,20 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class VisitorServiceImpl implements VisitorService {
 
   private final VisitorRepository visitorRepository;
   private final VisitorMapper visitorMapper;
 
+  public VisitorServiceImpl(VisitorRepository visitorRepository, VisitorMapper visitorMapper) {
+    this.visitorRepository = visitorRepository;
+    this.visitorMapper = visitorMapper;
+  }
+
   @Override
   @Transactional(readOnly = true)
   public VisitorAPIResponse getVisitorByDni(String dni) {
-    log.info("Buscando visitante con DNI: {}", dni);
+    System.out.println("Buscando visitante con DNI: " + dni);
 
     return visitorRepository.findByDni(dni)
         .map(visitor -> {
@@ -47,7 +51,7 @@ public class VisitorServiceImpl implements VisitorService {
   @Override
   @Transactional
   public VisitorAPIResponse createVisitor(VisitorRequestDto requestDto) {
-    log.info("Creando nuevo visitante con DNI: {}", requestDto.getDni());
+    System.out.println("Creando nuevo visitante con DNI: " + requestDto.getDni());
 
     // Verificar si ya existe un visitante con el mismo DNI
     if (visitorRepository.existsByDni(requestDto.getDni())) {
@@ -73,7 +77,7 @@ public class VisitorServiceImpl implements VisitorService {
   @Override
   @Transactional(readOnly = true)
   public List<VisitorAPIResponse> getAllVisitors() {
-    log.info("Obteniendo todos los visitantes");
+    System.out.println("Obteniendo todos los visitantes");
 
     return visitorRepository.findAll().stream()
         .map(visitor -> {
@@ -90,7 +94,7 @@ public class VisitorServiceImpl implements VisitorService {
   @Override
   @Transactional
   public VisitorAPIResponse updateVisitor(Integer id, VisitorRequestDto requestDto) {
-    log.info("Actualizando visitante con ID: {}", id);
+    System.out.println("Actualizando visitante con ID: " + id);
 
     return visitorRepository.findById(id)
         .map(existingVisitor -> {
@@ -128,7 +132,7 @@ public class VisitorServiceImpl implements VisitorService {
   @Override
   @Transactional
   public VisitorAPIResponse deleteVisitor(Integer id) {
-    log.info("Eliminando visitante con ID: {}", id);
+    System.out.println("Eliminando visitante con ID: " + id);
 
     return visitorRepository.findById(id)
         .map(visitor -> {

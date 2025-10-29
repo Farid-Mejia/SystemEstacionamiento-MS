@@ -5,7 +5,7 @@ spring:
     compatibility-verifier:
       enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/parksystem_usersdb
+    url: jdbc:mysql://localhost:3306/db_users
     username: root
     password: Lifeinmono77
   jpa:

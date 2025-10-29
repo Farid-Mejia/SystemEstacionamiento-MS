@@ -5,9 +5,10 @@ spring:
     compatibility-verifier:
       enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/db_visitors?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false&defaultAuthenticationPlugin=mysql_native_password
+    url: jdbc:mysql://localhost:3306/db_visitors
     username: root
-    password: mysqlmac
+    password: Lifeinmono77
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:
@@ -15,16 +16,19 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  jackson:
+    time-zone: America/Lima
+    date-format: yyyy-MM-dd HH:mm:ss
 
 server:
   port: 9001
 
-# Configuración JWT (debe coincidir con ms-users)
 jwt:
   secret: ynnZnUmVsXjHBgtOZQuRCiIMeQHPfqXwePYXwiYLIgwsBlvjZe
   expiration: 86400000
 
-# Configuración Eureka
 eureka:
   client:
     register-with-eureka: true

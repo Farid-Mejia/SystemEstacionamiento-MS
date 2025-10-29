@@ -57,6 +57,32 @@ export interface Visitor {
   updatedAt: string
 }
 
+// Tipos adicionales para mantenimiento de visitantes
+export interface CreateVisitorRequest {
+  dni: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
+}
+
+export interface UpdateVisitorRequest {
+  dni?: string
+  firstName?: string
+  paternalLastName?: string
+  maternalLastName?: string
+}
+
+export interface VisitorFormData {
+  dni: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
+}
+
+export interface VisitorFilters {
+  search: string
+}
+
 export interface AuthResponse {
   success: boolean
   message: string

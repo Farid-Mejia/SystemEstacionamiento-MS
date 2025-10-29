@@ -5,7 +5,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,10 +18,13 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtService jwtService;
+
+  public JwtAuthenticationFilter(JwtService jwtService) {
+    this.jwtService = jwtService;
+  }
 
   @Override
   protected void doFilterInternal(
@@ -30,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull HttpServletResponse response,
       @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-    log.info("=== JWT Filter ejecutándose para: {} {}", request.getMethod(), request.getRequestURI());
+    System.out.println("=== JWT Filter ejecutándose para: " + request.getMethod() + " " + request.getRequestURI());
 
     final String authHeader = request.getHeader("Authorization");
     final String jwt;
@@ -38,31 +40,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // Verificar si el header Authorization existe y tiene el formato correcto
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-      log.info("No hay Bearer token válido, continuando sin autenticación JWT");
+      System.out.println("No hay Bearer token válido, continuando sin autenticación JWT");
       filterChain.doFilter(request, response);
       return;
     }
 
     // Extraer el token JWT
     jwt = authHeader.substring(7);
-    log.info("Token JWT extraído exitosamente");
+    System.out.println("Token JWT extraído exitosamente");
 
     try {
       // Extraer username del token
       username = jwtService.extractUsername(jwt);
-      log.info("Username extraído del token: {}", username);
+      System.out.println("Username extraído del token: " + username);
 
       // Si el username existe y no hay autenticación previa
       if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-        log.info("Username válido y no hay autenticación previa, validando token...");
+        System.out.println("Username válido y no hay autenticación previa, validando token...");
 
         // Validar el token
         if (jwtService.isTokenValid(jwt, username)) {
-          log.info("Token JWT es válido para usuario: {}", username);
+          System.out.println("Token JWT es válido para usuario: " + username);
 
           // Extraer rol del token
           String role = jwtService.extractRole(jwt);
-          log.info("Rol extraído del token: {}", role);
+          System.out.println("Rol extraído del token: " + role);
 
           // Crear authorities basadas en el rol
           List<SimpleGrantedAuthority> authorities = List.of(
@@ -79,13 +81,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
           // Establecer la autenticación en el contexto de seguridad
           SecurityContextHolder.getContext().setAuthentication(authToken);
-          log.info("Autenticación JWT establecida exitosamente para usuario: {} con rol: {}", username, role);
+          System.out.println("Autenticación JWT establecida exitosamente para usuario: " + username + " con rol: " + role);
         } else {
-          log.warn("Token JWT no es válido para usuario: {}", username);
+          System.out.println("Token JWT no es válido para usuario: " + username);
         }
       }
     } catch (Exception e) {
-      log.error("Error procesando token JWT: {}", e.getMessage());
+      System.out.println("Error procesando token JWT: " + e.getMessage());
     }
 
     filterChain.doFilter(request, response);
