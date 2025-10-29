@@ -1,0 +1,52 @@
+server:
+  port: 9003
+
+spring:
+  application:
+    name: ms-parking-sessions
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_parking_sessions
+    username: root
+    password: Lifeinmono77
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    time-zone: America/Lima
+    date-format: yyyy-MM-dd HH:mm:ss
+
+jwt:
+  secret: ynnZnUmVsXjHBgtOZQuRCiIMeQHPfqXwePYXwiYLIgwsBlvjZe
+
+logging:
+  level:
+    com.cibertec: DEBUG
+    org.springframework.web: DEBUG
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    enabled: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

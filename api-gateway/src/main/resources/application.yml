@@ -24,6 +24,12 @@ spring:
                 - Path=/api/parking-spaces/**
               filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            - id: ms-parking-sessions
+              uri: lb://MS-PARKING-SESSIONS
+              predicates:
+                - Path=/api/parking-sessions/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
   port: 8000
 
