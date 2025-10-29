@@ -37,8 +37,8 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
   updateSpaceStatus: (space_number, status) => {
     set((state) => ({
       spaces: state.spaces.map((space) =>
-        space.space_number === space_number
-          ? { ...space, status, updated_at: new Date().toISOString() }
+        space.spaceNumber === space_number
+          ? { ...space, status, updatedAt: new Date().toISOString() }
           : space
       ),
     }))
@@ -78,9 +78,9 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
     const availableSpaces = get().spaces.filter((space) => space.status === 'available')
     
     if (needs_disabled_space === true) {
-      return availableSpaces.filter((space) => space.is_disabled_space)
+      return availableSpaces.filter((space) => space.isDisabledSpace)
     } else if (needs_disabled_space === false) {
-      return availableSpaces.filter((space) => !space.is_disabled_space)
+      return availableSpaces.filter((space) => !space.isDisabledSpace)
     }
     
     return availableSpaces
@@ -91,15 +91,15 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
   },
 
   getDisabledSpaces: () => {
-    return get().spaces.filter((space) => space.is_disabled_space)
+    return get().spaces.filter((space) => space.isDisabledSpace)
   },
 
   getAvailableDisabledSpaces: () => {
-    return get().spaces.filter((space) => space.is_disabled_space && space.status === 'available')
+    return get().spaces.filter((space) => space.isDisabledSpace && space.status === 'available')
   },
 
   validateSpaceAssignment: (space_number, needs_disabled_space) => {
-    const space = get().spaces.find((s) => s.space_number === space_number)
+    const space = get().spaces.find((s) => s.spaceNumber === space_number)
     
     if (!space) {
       return { valid: false, message: 'Espacio no encontrado' }
@@ -109,11 +109,11 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
       return { valid: false, message: 'El espacio no está disponible' }
     }
     
-    if (needs_disabled_space && !space.is_disabled_space) {
+    if (needs_disabled_space && !space.isDisabledSpace) {
       return { valid: false, message: 'Se requiere un espacio para personas con discapacidad' }
     }
     
-    if (!needs_disabled_space && space.is_disabled_space) {
+    if (!needs_disabled_space && space.isDisabledSpace) {
       return { valid: false, message: 'Este espacio está reservado para personas con discapacidad' }
     }
     

@@ -109,14 +109,52 @@ export interface Vehicle {
   updatedAt: string
 }
 
+// Tipos actualizados para espacios de estacionamiento
 export interface ParkingSpace {
   id: number
-  space_number: number
+  spaceNumber: number
   floor: 'SS' | 'S1'
   status: 'available' | 'occupied' | 'maintenance'
-  is_disabled_space: boolean
+  isDisabledSpace: boolean
   createdAt: string
   updatedAt: string
+}
+
+// DTOs para espacios de estacionamiento
+export interface CreateParkingSpaceRequest {
+  spaceNumber: number
+  floor: 'SS' | 'S1'
+  isDisabledSpace?: boolean
+  status?: 'available' | 'occupied' | 'maintenance'
+}
+
+export interface UpdateParkingSpaceRequest {
+  spaceNumber?: number
+  floor?: 'SS' | 'S1'
+  isDisabledSpace?: boolean
+  status?: 'available' | 'occupied' | 'maintenance'
+}
+
+export interface ParkingSpaceFormData {
+  spaceNumber: number
+  floor: 'SS' | 'S1'
+  isDisabledSpace: boolean
+  status: 'available' | 'occupied' | 'maintenance'
+}
+
+export interface ParkingSpaceFilters {
+  search: string
+  floor: 'ALL' | 'SS' | 'S1'
+  status: 'ALL' | 'available' | 'occupied' | 'maintenance'
+  isDisabledSpace: 'ALL' | 'true' | 'false'
+}
+
+export interface ParkingSpaceStats {
+  total: number
+  available: number
+  occupied: number
+  maintenance: number
+  disabled: number
 }
 
 export interface ParkingSession {
@@ -157,6 +195,7 @@ export interface ApiResponse<T = any> {
   data?: T
   message?: string
   error?: string
+  total?: number
 }
 
 export interface ParkingFloor {

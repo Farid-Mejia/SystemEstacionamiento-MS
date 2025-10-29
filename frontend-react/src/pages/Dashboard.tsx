@@ -36,18 +36,17 @@ export function Dashboard() {
   const loadData = async () => {
     setIsLoading(true)
     try {
-      const [spacesResponse, sessionsResponse] = await Promise.all([
-        parkingService.getParkingSpaces(),
-        parkingService.getSessions(),
-      ])
-
+      const spacesResponse = await parkingService.getParkingSpaces()
+      
       if (spacesResponse.success && spacesResponse.data) {
         setSpaces(spacesResponse.data)
       }
 
-      if (sessionsResponse.success && sessionsResponse.data) {
-        setSessions(sessionsResponse.data)
-      }
+      // TODO: Implementar getSessions cuando el endpoint esté disponible
+      // const sessionsResponse = await parkingService.getSessions()
+      // if (sessionsResponse.success && sessionsResponse.data) {
+      //   setSessions(sessionsResponse.data)
+      // }
     } catch (error) {
       toast.error('Error al cargar los datos')
     } finally {

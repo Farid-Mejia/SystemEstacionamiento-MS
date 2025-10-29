@@ -186,19 +186,19 @@ export function VehicleEntry() {
       return;
     }
 
-    const space = spaces.find((s) => s.space_number === space_number);
+    const space = spaces.find((s) => s.spaceNumber === space_number);
     if (!space || space.status !== 'available') {
       toast.error('El espacio seleccionado no está disponible');
       return;
     }
 
     // Validar si el espacio es apropiado para las necesidades del usuario
-    if (formData.needs_disabled_space && !space.is_disabled_space) {
+    if (formData.needs_disabled_space && !space.isDisabledSpace) {
       toast.error('Debe seleccionar un espacio para personas con discapacidad');
       return;
     }
 
-    if (!formData.needs_disabled_space && space.is_disabled_space) {
+    if (!formData.needs_disabled_space && space.isDisabledSpace) {
       toast.error('Este espacio está reservado para personas con discapacidad');
       return;
     }

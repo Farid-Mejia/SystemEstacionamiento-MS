@@ -133,7 +133,7 @@ export function VehicleExit() {
           setActiveSession(session)
 
           // Obtener información del visitante
-          const visitorResponse = await parkingService.getVisitorByDni(vehicle.owner_dni)
+          const visitorResponse = await parkingService.getVisitorByDni(vehicle.ownerDni)
           if (visitorResponse.success && visitorResponse.data) {
             setVisitorInfo(visitorResponse.data)
           }

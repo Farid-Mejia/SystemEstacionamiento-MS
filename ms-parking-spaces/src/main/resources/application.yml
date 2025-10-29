@@ -1,11 +1,14 @@
+server:
+  port: 9002
+
 spring:
   application:
-    name: ms-visitors
+    name: ms-parking-spaces
   cloud:
     compatibility-verifier:
       enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/db_visitors
+    url: jdbc:mysql://localhost:3306/db_parking_spaces
     username: root
     password: Lifeinmono77
   jpa:
@@ -20,9 +23,6 @@ spring:
     time-zone: America/Lima
     date-format: yyyy-MM-dd HH:mm:ss
 
-server:
-  port: 9001
-
 jwt:
   secret: ynnZnUmVsXjHBgtOZQuRCiIMeQHPfqXwePYXwiYLIgwsBlvjZe
 
@@ -33,10 +33,19 @@ logging:
 
 eureka:
   client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

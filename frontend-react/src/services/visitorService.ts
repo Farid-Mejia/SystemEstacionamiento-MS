@@ -5,17 +5,14 @@ const API_BASE_URL = 'http://localhost:8000';
 const API_TIMEOUT = 10000;
 
 // Función auxiliar para realizar peticiones HTTP con Bearer token
-const apiRequest = async <T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> => {
+const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> => {
   // Obtener el token del authStore
   const token = useAuthStore.getState().token;
-  
+
   if (!token) {
     return {
       success: false,
-      message: 'Token de autenticación no encontrado'
+      message: 'Token de autenticación no encontrado',
     };
   }
 
@@ -28,7 +25,7 @@ const apiRequest = async <T>(
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
     });
@@ -37,9 +34,21 @@ const apiRequest = async <T>(
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Intentar parsear el errorText como JSON para extraer solo el mensaje
+      let errorMessage = errorText || response.statusText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson && errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+      } catch {
+        // Si no es JSON válido, usar el texto completo
+      }
+
       return {
         success: false,
-        message: `Error ${response.status}: ${errorText || response.statusText}`
+        message: errorMessage,
       };
     }
 
@@ -47,27 +56,27 @@ const apiRequest = async <T>(
     return {
       success: true,
       data,
-      message: 'Operación exitosa'
+      message: 'Operación exitosa',
     };
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
         return {
           success: false,
-          message: 'Tiempo de espera agotado'
+          message: 'Tiempo de espera agotado',
         };
       }
       return {
         success: false,
-        message: error.message
+        message: error.message,
       };
     }
-    
+
     return {
       success: false,
-      message: 'Error desconocido'
+      message: 'Error desconocido',
     };
   }
 };
@@ -114,7 +123,7 @@ export const visitorService = {
   // Buscar visitantes por nombre o DNI
   async searchVisitors(searchTerm: string): Promise<ApiResponse<Visitor[]>> {
     const response = await this.getVisitors();
-    
+
     if (!response.success || !response.data) {
       return response;
     }
@@ -123,17 +132,12 @@ export const visitorService = {
     // Los visitantes están en response.data.data (estructura de ms-visitors)
     const responseData = response.data as any;
     const visitors = Array.isArray(responseData.data) ? responseData.data : [];
-    const filtered = visitors.filter((visitor: Visitor) => 
-      visitor.dni.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      visitor.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      visitor.paternalLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      visitor.maternalLastName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = visitors.filter((visitor: Visitor) => visitor.dni.toLowerCase().includes(searchTerm.toLowerCase()) || visitor.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || visitor.paternalLastName.toLowerCase().includes(searchTerm.toLowerCase()) || visitor.maternalLastName.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return {
       success: true,
       data: filtered,
-      message: 'Búsqueda completada'
+      message: 'Búsqueda completada',
     };
-  }
+  },
 };
