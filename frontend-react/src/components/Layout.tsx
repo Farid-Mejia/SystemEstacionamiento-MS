@@ -10,6 +10,7 @@ import {
   ArrowRight, 
   ArrowLeft,
   User,
+  Users,
   BarChart3
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -44,6 +45,11 @@ export function Layout({ children, title }: LayoutProps) {
       label: 'Salida de Vehículos',
       icon: ArrowLeft,
       path: '/vehicles/exit',
+    },
+    {
+      label: 'Gestión de Usuarios',
+      icon: Users,
+      path: '/users',
     },
     {
       label: 'Reportes',

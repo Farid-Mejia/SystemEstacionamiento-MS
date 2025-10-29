@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParkingStore } from '@/stores/parkingStore';
 import { parkingService } from '@/services/parkingService';
+import { VehicleEntryRequest } from '@/types';
 import { Layout } from '@/components/Layout';
 import { ParkingGrid } from '@/components/ParkingGrid';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import Swal from 'sweetalert2';
 interface FormData {
   userDni: string;
   license_plate: string;
-  needsDisabledSpace: boolean;
+  needs_disabled_space: boolean;
 }
 
 interface FormErrors {
@@ -36,7 +37,7 @@ export function VehicleEntry() {
   const [formData, setFormData] = useState<FormData>({
     userDni: '',
     license_plate: '',
-    needsDisabledSpace: false,
+    needs_disabled_space: false,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -192,12 +193,12 @@ export function VehicleEntry() {
     }
 
     // Validar si el espacio es apropiado para las necesidades del usuario
-    if (formData.needsDisabledSpace && !space.is_disabled_space) {
+    if (formData.needs_disabled_space && !space.is_disabled_space) {
       toast.error('Debe seleccionar un espacio para personas con discapacidad');
       return;
     }
 
-    if (!formData.needsDisabledSpace && space.is_disabled_space) {
+    if (!formData.needs_disabled_space && space.is_disabled_space) {
       toast.error('Este espacio está reservado para personas con discapacidad');
       return;
     }
@@ -227,7 +228,7 @@ export function VehicleEntry() {
     }
 
     // Validar asignación de espacio
-    const validation = validateSpaceAssignment(selectedSpace, formData.needsDisabledSpace);
+    const validation = validateSpaceAssignment(selectedSpace, formData.needs_disabled_space);
     if (!validation.valid) {
       toast.error(validation.message);
       return;
@@ -236,12 +237,12 @@ export function VehicleEntry() {
     setIsLoading(true);
 
     try {
-      const entryData = {
-        license_plate: formData.license_plate,
+      const entryData: VehicleEntryRequest = {
+        license_plate: formData.license_plate.toUpperCase(),
         space_number: selectedSpace,
         entry_time: new Date().toISOString(),
         visitor_id: userInfo.dni,
-        needsDisabledSpace: formData.needsDisabledSpace,
+        needs_disabled_space: formData.needs_disabled_space,
       };
 
       const response = await parkingService.vehicleEntry(entryData);
@@ -272,7 +273,7 @@ export function VehicleEntry() {
         setFormData({
           userDni: '',
           license_plate: '',
-          needsDisabledSpace: false,
+          needs_disabled_space: false,
         });
         setUserInfo(null);
         setSelectedSpace(null);
@@ -289,7 +290,7 @@ export function VehicleEntry() {
     }
   };
 
-  const availableSpaces = formData.needsDisabledSpace ? getAvailableDisabledSpaces() : getAvailableSpaces();
+  const availableSpaces = formData.needs_disabled_space ? getAvailableDisabledSpaces() : getAvailableSpaces();
 
   const getStepIcon = (step: ValidationStep) => {
     if (validatedSteps.has(step)) {
@@ -377,8 +378,13 @@ export function VehicleEntry() {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="needsDisabledSpace" checked={formData.needsDisabledSpace} onCheckedChange={(checked) => handleInputChange('needsDisabledSpace', checked as boolean)} disabled={!validatedSteps.has(ValidationStep.DNI)} />
-                  <Label htmlFor="needsDisabledSpace" className="flex items-center space-x-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  <Checkbox
+                    id="needs_disabled_space"
+                    checked={formData.needs_disabled_space}
+                    onCheckedChange={(checked) => handleInputChange('needs_disabled_space', checked as boolean)}
+                    disabled={!validatedSteps.has(ValidationStep.DNI)}
+                  />
+                  <Label htmlFor="needs_disabled_space" className="flex items-center space-x-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     <Accessibility className="w-4 h-4 text-purple-600" />
                     <span>Necesita espacio para discapacidad</span>
                   </Label>
@@ -419,7 +425,7 @@ export function VehicleEntry() {
               <CardHeader>
                 <CardTitle>
                   Seleccionar Espacio - Primer Piso (SS)
-                  {formData.needsDisabledSpace && (
+                  {formData.needs_disabled_space && (
                     <span className="text-purple-600 ml-2">
                       <Accessibility className="w-4 h-4 inline" /> Espacios de Discapacidad
                     </span>
@@ -435,7 +441,7 @@ export function VehicleEntry() {
               <CardHeader>
                 <CardTitle>
                   Seleccionar Espacio - Sótano (S1)
-                  {formData.needsDisabledSpace && (
+                  {formData.needs_disabled_space && (
                     <span className="text-purple-600 ml-2">
                       <Accessibility className="w-4 h-4 inline" /> Espacios de Discapacidad
                     </span>

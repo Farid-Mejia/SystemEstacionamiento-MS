@@ -40,7 +40,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(authz -> authz
                                                 .requestMatchers("/api/users/login").permitAll()
                                                 .requestMatchers("/api/users/validate").permitAll()
-                                                .requestMatchers("/api/users").hasRole("ADMIN")
+                                                .requestMatchers("/api/users").hasAnyRole("ADMIN", "OPERATOR")
                                                 .anyRequest().authenticated())
 
                                 // Configurar manejo de excepciones

@@ -46,6 +46,8 @@ export const parkingService = {
       return simulateApiError('Ya existe un vehículo con esta placa');
     }
 
+    console.log('mockVisitors', mockVisitors);
+    console.log('vehicleData', vehicleData);
     const visitor = mockVisitors.find((v) => v.dni === vehicleData.user_dni);
     if (!visitor) {
       return simulateApiError('Visitante no encontrado');
@@ -69,6 +71,8 @@ export const parkingService = {
   },
 
   async vehicleEntry(entryData: VehicleEntryRequest): Promise<ApiResponse<ParkingSession>> {
+    console.log('entryData', entryData);
+    console.log('mockVehicles', mockVehicles);
     let vehicle = mockVehicles.find((v) => v.license_plate === entryData.license_plate);
 
     // Si el vehículo no existe, lo registramos automáticamente
@@ -169,9 +173,9 @@ export const parkingService = {
     return simulateApiCall(vehicles);
   },
 
-  async getVehicleByLicensePlate(licensePlate: string): Promise<ApiResponse<Vehicle | null>> {
+  async getVehicleByLicensePlate(license_plate: string): Promise<ApiResponse<Vehicle | null>> {
     console.log('mockVehicles', mockVehicles);
-    const vehicle = mockVehicles.find((v) => v.license_plate === licensePlate);
+    const vehicle = mockVehicles.find((v) => v.license_plate === license_plate);
     return simulateApiCall(vehicle || null);
   },
 
@@ -211,8 +215,8 @@ export const parkingService = {
     return simulateApiCall(!!activeSession);
   },
 
-  async checkPlateInUse(licensePlate: string): Promise<ApiResponse<boolean>> {
-    const activeSession = mockSessions.find((s) => s.license_plate === licensePlate && s.status === 'active');
+  async checkPlateInUse(license_plate: string): Promise<ApiResponse<boolean>> {
+    const activeSession = mockSessions.find((s) => s.license_plate === license_plate && s.status === 'active');
     return simulateApiCall(!!activeSession);
   },
 };

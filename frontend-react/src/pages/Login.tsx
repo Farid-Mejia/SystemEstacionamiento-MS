@@ -50,9 +50,8 @@ export function Login() {
         password: formData.password,
       });
 
-      if (response.success) {
-        // Manejar tanto la estructura envuelta como la directa
-        const authData = response.data || response;
+      if (response.success && response.data) {
+        const authData = response.data;
 
         if (authData && authData.token && authData.user) {
           // Guardar en localStorage usando las funciones del authService
@@ -62,7 +61,7 @@ export function Login() {
           // Actualizar el store de Zustand
           login(authData.user, authData.token);
 
-          toast.success(authData.message || 'Inicio de sesión exitoso');
+          toast.success(response.message || 'Inicio de sesión exitoso');
           navigate('/dashboard');
         } else {
           toast.error('Respuesta del servidor incompleta');
