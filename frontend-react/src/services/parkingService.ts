@@ -1,4 +1,4 @@
-import { ParkingSpace, ApiResponse, CreateParkingSpaceRequest, UpdateParkingSpaceRequest, ParkingSpaceStats, ParkingSession } from '@/types';
+import { ParkingSpace, ApiResponse, CreateParkingSpaceRequest, UpdateParkingSpaceRequest, ParkingSpaceStats, ParkingSession, CreateParkingSessionRequest, ExitParkingSessionRequest, ParkingSessionStats } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -232,9 +232,64 @@ export const parkingService = {
     }
   },
 
-  // Obtener sesiones de estacionamiento
-  async getSessions(): Promise<ApiResponse<ParkingSession[]>> {
+  // ===== MÉTODOS PARA SESIONES DE ESTACIONAMIENTO =====
+
+  // Obtener todas las sesiones de estacionamiento
+  async getAllParkingSessions(): Promise<ApiResponse<ParkingSession[]>> {
     return await apiRequest<ParkingSession[]>('/api/parking-sessions');
+  },
+
+  // Obtener sesión por ID
+  async getParkingSessionById(id: number): Promise<ApiResponse<ParkingSession>> {
+    return await apiRequest<ParkingSession>(`/api/parking-sessions/${id}`);
+  },
+
+  // Crear nueva sesión de estacionamiento
+  async createParkingSession(sessionData: CreateParkingSessionRequest): Promise<ApiResponse<ParkingSession>> {
+    return await apiRequest<ParkingSession>('/api/parking-sessions', {
+      method: 'POST',
+      body: JSON.stringify(sessionData),
+    });
+  },
+
+  // Finalizar sesión de estacionamiento (salida)
+  async exitParkingSession(id: number, exitData: ExitParkingSessionRequest): Promise<ApiResponse<ParkingSession>> {
+    return await apiRequest<ParkingSession>(`/api/parking-sessions/${id}/exit`, {
+      method: 'PUT',
+      body: JSON.stringify(exitData),
+    });
+  },
+
+  // Obtener sesiones activas por placa
+  async getActiveSessionsByLicensePlate(licensePlate: string): Promise<ApiResponse<ParkingSession[]>> {
+    return await apiRequest<ParkingSession[]>(`/api/parking-sessions/active?licensePlate=${encodeURIComponent(licensePlate)}`);
+  },
+
+  // Obtener sesiones por visitante
+  async getSessionsByVisitorId(visitorId: number): Promise<ApiResponse<ParkingSession[]>> {
+    return await apiRequest<ParkingSession[]>(`/api/parking-sessions/visitor/${visitorId}`);
+  },
+
+  // Obtener sesiones por espacio de estacionamiento
+  async getSessionsByParkingSpaceId(spaceId: number): Promise<ApiResponse<ParkingSession[]>> {
+    return await apiRequest<ParkingSession[]>(`/api/parking-sessions/space/${spaceId}`);
+  },
+
+  // Cancelar sesión
+  async cancelParkingSession(id: number): Promise<ApiResponse<ParkingSession>> {
+    return await apiRequest<ParkingSession>(`/api/parking-sessions/${id}/cancel`, {
+      method: 'PUT',
+    });
+  },
+
+  // Obtener estadísticas de sesiones
+  async getParkingSessionStats(): Promise<ApiResponse<ParkingSessionStats>> {
+    return await apiRequest<ParkingSessionStats>('/api/parking-sessions/stats');
+  },
+
+  // Método de compatibilidad (alias para getAllParkingSessions)
+  async getSessions(): Promise<ApiResponse<ParkingSession[]>> {
+    return this.getAllParkingSessions();
   },
 
   // Obtener visitante por DNI
@@ -252,20 +307,14 @@ export const parkingService = {
     return await apiRequest<any>(`/api/vehicles/owner-dni/${dni}`);
   },
 
-  // Registrar entrada de vehículo
-  async vehicleEntry(entryData: any): Promise<ApiResponse<any>> {
-    return await apiRequest<any>('/api/parking-sessions/entry', {
-      method: 'POST',
-      body: JSON.stringify(entryData),
-    });
+  // Registrar entrada de vehículo (crear sesión de estacionamiento)
+  async vehicleEntry(entryData: CreateParkingSessionRequest): Promise<ApiResponse<ParkingSession>> {
+    return this.createParkingSession(entryData);
   },
 
-  // Registrar salida de vehículo
-  async vehicleExit(exitData: any): Promise<ApiResponse<any>> {
-    return await apiRequest<any>('/api/parking-sessions/exit', {
-      method: 'POST',
-      body: JSON.stringify(exitData),
-    });
+  // Registrar salida de vehículo (finalizar sesión de estacionamiento)
+  async vehicleExit(sessionId: number, exitData: ExitParkingSessionRequest): Promise<ApiResponse<ParkingSession>> {
+    return this.exitParkingSession(sessionId, exitData);
   },
 
   // Crear visitante

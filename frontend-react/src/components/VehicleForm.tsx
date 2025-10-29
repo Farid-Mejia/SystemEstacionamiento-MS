@@ -15,10 +15,10 @@ interface VehicleFormProps {
 
 export function VehicleForm({ onSubmit, isLoading = false, initialData }: VehicleFormProps) {
   const [formData, setFormData] = useState<VehicleRegistrationRequest>({
-    license_plate: initialData?.license_plate || '',
-    space_number: initialData?.space_number || 0,
-    user_dni: initialData?.user_dni || '',
-    needs_disabled_space: initialData?.needs_disabled_space || false,
+    licensePlate: initialData?.licensePlate || '',
+    spaceNumber: initialData?.spaceNumber || 0,
+    userDni: initialData?.userDni || '',
+    needsDisabledSpace: initialData?.needsDisabledSpace || false,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -26,20 +26,20 @@ export function VehicleForm({ onSubmit, isLoading = false, initialData }: Vehicl
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.license_plate.trim()) {
-      newErrors.license_plate = 'La placa es requerida'
-    } else if (!/^[A-Z]{3}\d{3}$/.test(formData.license_plate)) {
-      newErrors.license_plate = 'Formato de placa inválido (ABC123)'
+    if (!formData.licensePlate.trim()) {
+      newErrors.licensePlate = 'La placa es requerida'
+    } else if (!/^[A-Z]{3}\d{3}$/.test(formData.licensePlate)) {
+      newErrors.licensePlate = 'Formato de placa inválido (ABC123)'
     }
 
-    if (!formData.user_dni.trim()) {
-      newErrors.user_dni = 'El DNI es requerido'
-    } else if (!/^\d{8}$/.test(formData.user_dni)) {
-      newErrors.user_dni = 'El DNI debe tener 8 dígitos'
+    if (!formData.userDni.trim()) {
+      newErrors.userDni = 'El DNI es requerido'
+    } else if (!/^\d{8}$/.test(formData.userDni)) {
+      newErrors.userDni = 'El DNI debe tener 8 dígitos'
     }
 
-    if (!formData.space_number || formData.space_number <= 0) {
-      newErrors.space_number = 'Debe seleccionar un espacio válido'
+    if (!formData.spaceNumber || formData.spaceNumber <= 0) {
+      newErrors.spaceNumber = 'Debe seleccionar un espacio válido'
     }
 
     setErrors(newErrors)
@@ -52,7 +52,7 @@ export function VehicleForm({ onSubmit, isLoading = false, initialData }: Vehicl
     if (validateForm()) {
       onSubmit({
         ...formData,
-        license_plate: formData.license_plate.toUpperCase(),
+        licensePlate: formData.licensePlate.toUpperCase(),
       })
     }
   }
@@ -77,55 +77,55 @@ export function VehicleForm({ onSubmit, isLoading = false, initialData }: Vehicl
               <Input
                 id="license_plate"
                 placeholder="ABC123"
-                value={formData.license_plate}
-                onChange={(e) => setFormData({ ...formData, license_plate: e.target.value.toUpperCase() })}
+                value={formData.licensePlate}
+                onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value.toUpperCase() })}
                 maxLength={6}
               />
-              {errors.license_plate && (
-                <p className="text-sm text-red-500">{errors.license_plate}</p>
+              {errors.licensePlate && (
+                <p className="text-sm text-red-500">{errors.licensePlate}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="user_dni">DNI del Usuario</Label>
+              <Label htmlFor="userDni">DNI del Usuario</Label>
               <Input
-                id="user_dni"
+                id="userDni"
                 placeholder="12345678"
-                value={formData.user_dni}
-                onChange={(e) => handleInputChange('user_dni', e.target.value)}
-                className={errors.user_dni ? 'border-red-500' : ''}
+                value={formData.userDni}
+                onChange={(e) => handleInputChange('userDni', e.target.value)}
+                className={errors.userDni ? 'border-red-500' : ''}
                 maxLength={8}
               />
-              {errors.user_dni && (
-                <p className="text-sm text-red-500">{errors.user_dni}</p>
+              {errors.userDni && (
+                <p className="text-sm text-red-500">{errors.userDni}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="space_number">Número de Espacio</Label>
+              <Label htmlFor="spaceNumber">Número de Espacio</Label>
               <Input
-                id="space_number"
+                id="spaceNumber"
                 type="number"
                 placeholder="1"
-                value={formData.space_number || ''}
-                onChange={(e) => handleInputChange('space_number', parseInt(e.target.value) || 0)}
-                className={errors.space_number ? 'border-red-500' : ''}
+                value={formData.spaceNumber || ''}
+                onChange={(e) => handleInputChange('spaceNumber', parseInt(e.target.value) || 0)}
+                className={errors.spaceNumber ? 'border-red-500' : ''}
                 min={1}
                 max={40}
               />
-              {errors.space_number && (
-                <p className="text-sm text-red-500">{errors.space_number}</p>
+              {errors.spaceNumber && (
+                <p className="text-sm text-red-500">{errors.spaceNumber}</p>
               )}
             </div>
 
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="needs_disabled_space"
-                  checked={formData.needs_disabled_space}
-                  onCheckedChange={(checked) => handleInputChange('needs_disabled_space', checked as boolean)}
+                  id="needsDisabledSpace"
+                  checked={formData.needsDisabledSpace}
+                  onCheckedChange={(checked) => handleInputChange('needsDisabledSpace', checked as boolean)}
                 />
-                <Label htmlFor="needs_disabled_space" className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                <Label htmlFor="needsDisabledSpace" className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                   <Accessibility className="w-4 h-4" />
                   Necesita espacio para personas con discapacidad
                 </Label>

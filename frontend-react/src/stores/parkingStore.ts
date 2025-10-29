@@ -23,7 +23,7 @@ interface ParkingState {
   getAvailableDisabledSpaces: () => ParkingSpace[]
   validateSpaceAssignment: (space_number: number, needs_disabled_space: boolean) => { valid: boolean; message?: string }
   getActiveSessionBySpace: (space_number: number) => ParkingSession | undefined
-  getVehicleByLicensePlate: (license_plate: string) => Vehicle | undefined
+  getVehicleByLicensePlate: (licensePlate: string) => Vehicle | undefined
 }
 
 export const useParkingStore = create<ParkingState>((set, get) => ({
@@ -121,12 +121,11 @@ export const useParkingStore = create<ParkingState>((set, get) => ({
   },
   
   getActiveSessionBySpace: (space_number) => {
-    return get().sessions.find(
-      (session) => session.parking_space_id === space_number && session.status === 'active'
-    )
-  },
-  
-  getVehicleByLicensePlate: (license_plate) => {
-    return get().vehicles.find((vehicle) => vehicle.license_plate === license_plate)
-  },
+      return get().sessions.find(
+        (session) => session.parkingSpaceId === space_number && session.status === 'active'
+      )
+    },
+    getVehicleByLicensePlate: (licensePlate) => {
+      return get().vehicles.find((vehicle) => vehicle.licensePlate === licensePlate)
+    },
 }))

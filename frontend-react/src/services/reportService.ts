@@ -3,13 +3,13 @@ import { es } from 'date-fns/locale';
 
 export interface HistoricalRecord {
   id: string;
-  license_plate: string;
+  licensePlate: string;
   dni: string;
   visitor_name: string;
   space_number: number;
   space_type: 'normal' | 'disability' | 'maintenance';
-  entry_time: Date;
-  exit_time: Date;
+  entryTime: Date;
+  exitTime: Date;
   duration: number; // en minutos
   floor: string;
 }
@@ -64,35 +64,35 @@ const generateHistoricalData = (): HistoricalRecord[] => {
     for (let i = 0; i < vehiclesPerDay; i++) {
       const entryHour = Math.floor(Math.random() * 12) + 7; // 7 AM - 7 PM
       const entryMinute = Math.floor(Math.random() * 60);
-      const entry_time = new Date(day);
-      entry_time.setHours(entryHour, entryMinute, 0, 0);
+      const entryTime = new Date(day);
+      entryTime.setHours(entryHour, entryMinute, 0, 0);
       
       // Duración entre 30 minutos y 8 horas
       const durationMinutes = Math.floor(Math.random() * 450) + 30;
-      const exit_time = new Date(entry_time.getTime() + durationMinutes * 60000);
+      const exitTime = new Date(entryTime.getTime() + durationMinutes * 60000);
       
       // Asegurar que no exceda el día actual
-      if (exit_time > today) continue;
+      if (exitTime > today) continue;
       
       const space_types: ('normal' | 'disability' | 'maintenance')[] = ['normal', 'normal', 'normal', 'normal', 'disability', 'maintenance'];
       const space_type = space_types[Math.floor(Math.random() * space_types.length)];
       
       records.push({
         id: `${dayIndex}-${i}`,
-        license_plate: license_plates[Math.floor(Math.random() * license_plates.length)],
+        licensePlate: license_plates[Math.floor(Math.random() * license_plates.length)],
         dni: `${Math.floor(Math.random() * 90000000) + 10000000}`,
         visitor_name: names[Math.floor(Math.random() * names.length)],
         space_number: Math.floor(Math.random() * 40) + 1,
         space_type,
-        entry_time,
-        exit_time,
+        entryTime: entryTime,
+        exitTime: exitTime,
         duration: durationMinutes,
         floor: Math.random() > 0.5 ? 'SS' : 'S1'
       });
     }
   });
   
-  return records.sort((a, b) => b.entry_time.getTime() - a.entry_time.getTime());
+  return records.sort((a, b) => b.entryTime.getTime() - a.entryTime.getTime());
 };
 
 const historicalData = generateHistoricalData();
@@ -103,13 +103,13 @@ export const reportService = {
     let filtered = historicalData;
     
     if (startDate) {
-      filtered = filtered.filter(record => record.entry_time >= startDate);
+      filtered = filtered.filter(record => record.entryTime >= startDate);
     }
     
     if (endDate) {
       const endOfDay = new Date(endDate);
       endOfDay.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(record => record.entry_time <= endOfDay);
+      filtered = filtered.filter(record => record.entryTime <= endOfDay);
     }
     
     return filtered;
@@ -121,7 +121,7 @@ export const reportService = {
     const dailyMap = new Map<string, HistoricalRecord[]>();
     
     records.forEach(record => {
-      const dateKey = format(record.entry_time, 'yyyy-MM-dd');
+      const dateKey = format(record.entryTime, 'yyyy-MM-dd');
       if (!dailyMap.has(dateKey)) {
         dailyMap.set(dateKey, []);
       }
@@ -150,7 +150,7 @@ export const reportService = {
     const monthlyMap = new Map<string, HistoricalRecord[]>();
     
     records.forEach(record => {
-      const monthKey = format(record.entry_time, 'yyyy-MM');
+      const monthKey = format(record.entryTime, 'yyyy-MM');
       if (!monthlyMap.has(monthKey)) {
         monthlyMap.set(monthKey, []);
       }
@@ -190,7 +190,7 @@ export const reportService = {
     // Encontrar hora pico (simulado)
     const hourCounts = new Array(24).fill(0);
     records.forEach(record => {
-      hourCounts[record.entry_time.getHours()]++;
+      hourCounts[record.entryTime.getHours()]++;
     });
     const peakHourIndex = hourCounts.indexOf(Math.max(...hourCounts));
     

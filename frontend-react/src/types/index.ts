@@ -98,10 +98,10 @@ export interface LoginRequest {
 
 export interface Vehicle {
   id: number
-  license_plate: string
-  owner_dni: string
-  owner_name: string
-  vehicle_type: string
+  licensePlate: string
+  ownerDni: string
+  ownerName: string
+  vehicleType: string
   color: string
   brand: string
   model: string
@@ -159,35 +159,54 @@ export interface ParkingSpaceStats {
 
 export interface ParkingSession {
   id: number
-  license_plate: string
-  visitor_id: number
-  parking_space_id: number
-  entry_time: string
-  exit_time?: string
-  duration_seconds?: number
+  licensePlate: string
+  visitorId: number
+  parkingSpaceId: number
+  entryTime: string
+  exitTime?: string
+  durationSeconds?: number
   status: 'active' | 'completed' | 'cancelled'
   createdAt: string
   updatedAt: string
 }
 
+// DTOs para sesiones de estacionamiento
+export interface CreateParkingSessionRequest {
+  licensePlate: string
+  visitorId: number
+  parkingSpaceId: number
+  entryTime?: string
+}
+
+export interface ExitParkingSessionRequest {
+  exitTime?: string
+}
+
+export interface ParkingSessionStats {
+  active: number
+  completed: number
+  cancelled: number
+  total: number
+}
+
 export interface VehicleRegistrationRequest {
-  license_plate: string
-  space_number: number
-  user_dni: string
-  needs_disabled_space?: boolean
+  licensePlate: string
+  spaceNumber: number
+  userDni: string
+  needsDisabledSpace?: boolean
 }
 
 export interface VehicleEntryRequest {
-  license_plate: string
-  space_number: number
-  entry_time: string
-  visitor_id: number
-  needs_disabled_space?: boolean
+  licensePlate: string
+  spaceNumber: number
+  entryTime: string
+  visitorId: number
+  needsDisabledSpace?: boolean
 }
 
 export interface VehicleExitRequest {
-  license_plate: string
-  exit_time: string
+  licensePlate: string
+  exitTime: string
 }
 
 export interface ApiResponse<T = any> {
@@ -205,8 +224,8 @@ export interface ParkingFloor {
 }
 
 export interface VehicleInfo {
-  license_plate: string
-  space_number: number
-  entry_time?: string
-  duration_seconds?: number
+  licensePlate: string
+  spaceNumber: number
+  entryTime?: string
+  durationSeconds?: number
 }

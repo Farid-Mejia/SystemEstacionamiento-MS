@@ -79,10 +79,10 @@ export const mockParkingSpaces: ParkingSpace[] = [
 export const mockVehicles: Vehicle[] = [
   {
     id: 1,
-    license_plate: 'ABC123',
-    owner_dni: '11111111',
-    owner_name: 'Carlos López',
-    vehicle_type: 'car',
+    licensePlate: 'ABC123',
+    ownerDni: '11111111',
+    ownerName: 'Carlos López',
+    vehicleType: 'car',
     color: 'Azul',
     brand: 'Toyota',
     model: 'Corolla',
@@ -91,10 +91,10 @@ export const mockVehicles: Vehicle[] = [
   },
   {
     id: 2,
-    license_plate: 'DEF456',
-    owner_dni: '22222222',
-    owner_name: 'Ana Martínez',
-    vehicle_type: 'car',
+    licensePlate: 'DEF456',
+    ownerDni: '22222222',
+    ownerName: 'Ana Martínez',
+    vehicleType: 'car',
     color: 'Rojo',
     brand: 'Honda',
     model: 'Civic',
@@ -103,14 +103,14 @@ export const mockVehicles: Vehicle[] = [
   },
 ];
 
-export const mockSessions: ParkingSession[] = [
+export const mockParkingSessions: ParkingSession[] = [
   {
     id: 1,
-    license_plate: 'ABC123',
-    visitor_id: 1,
-    parking_space_id: 9,
-    entry_time: '2024-01-15T08:00:00Z',
-    exit_time: undefined,
+    licensePlate: 'ABC123',
+    visitorId: 1,
+    parkingSpaceId: 9,
+    entryTime: '2024-01-15T08:00:00Z',
+    exitTime: undefined,
     status: 'active',
     createdAt: '2024-01-15T08:00:00Z',
     updatedAt: '2024-01-15T08:00:00Z',

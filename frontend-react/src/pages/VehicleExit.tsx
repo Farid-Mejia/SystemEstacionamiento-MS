@@ -90,7 +90,7 @@ export function VehicleExit() {
           // Filtrar solo vehículos con sesiones activas
           const vehiclesWithActiveSessions = vehiclesResponse.data.filter(vehicle => {
             return sessions.some(session => 
-              session.license_plate === vehicle.license_plate && session.status === 'active'
+              session.licensePlate === vehicle.licensePlate && session.status === 'active'
             )
           })
 
@@ -120,7 +120,7 @@ export function VehicleExit() {
           
           // Verificar si tiene sesión activa
           const session = sessions.find(
-            s => s.license_plate === vehicle.license_plate && s.status === 'active'
+            s => s.licensePlate === vehicle.licensePlate && s.status === 'active'
           )
           
           if (!session) {
@@ -154,7 +154,7 @@ export function VehicleExit() {
     setSelectedVehicle(vehicle)
     
     const session = sessions.find(
-      s => s.license_plate === vehicle.license_plate && s.status === 'active'
+      s => s.licensePlate === vehicle.licensePlate && s.status === 'active'
     )
     
     if (session) {
@@ -163,8 +163,8 @@ export function VehicleExit() {
     }
   }
 
-  const calculateDuration = (entry_time: string) => {
-    const entry = new Date(entry_time)
+  const calculateDuration = (entryTime: string) => {
+    const entry = new Date(entryTime)
     const now = new Date()
     const diffMs = now.getTime() - entry.getTime()
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
@@ -179,7 +179,7 @@ export function VehicleExit() {
       return
     }
 
-    const duration = calculateDuration(activeSession.entry_time)
+    const duration = calculateDuration(activeSession.entryTime)
     
     const result = await Swal.fire({
       title: 'Confirmar Salida',
@@ -187,15 +187,15 @@ export function VehicleExit() {
         <div class="text-left space-y-2">
           <div class="bg-blue-50 p-3 rounded-lg">
             <h4 class="font-semibold text-blue-800 mb-2">Información del Vehículo</h4>
-            <p><strong>Placa:</strong> ${selectedVehicle.license_plate}</p>
-            <p><strong>Propietario:</strong> ${selectedVehicle.owner_name}</p>
+            <p><strong>Placa:</strong> ${selectedVehicle.licensePlate}</p>
+            <p><strong>Propietario:</strong> ${selectedVehicle.ownerName}</p>
             <p><strong>DNI:</strong> ${visitorInfo.dni}</p>
           </div>
           <div class="bg-green-50 p-3 rounded-lg">
             <h4 class="font-semibold text-green-800 mb-2">Información de Estacionamiento</h4>
-            <p><strong>Espacio:</strong> ${activeSession.parking_space_id}</p>
+            <p><strong>Espacio:</strong> ${activeSession.parkingSpaceId}</p>
             <p><strong>Tiempo estacionado:</strong> ${duration}</p>
-            <p><strong>Hora de ingreso:</strong> ${new Date(activeSession.entry_time).toLocaleString()}</p>
+            <p><strong>Hora de ingreso:</strong> ${new Date(activeSession.entryTime).toLocaleString()}</p>
             <p><strong>Hora de salida:</strong> ${new Date().toLocaleString()}</p>
           </div>
         </div>
@@ -212,15 +212,14 @@ export function VehicleExit() {
 
     setIsLoading(true)
     try {
-      const response = await parkingService.vehicleExit({
-        license_plate: selectedVehicle.license_plate,
-        exit_time: new Date().toISOString(),
+      const response = await parkingService.vehicleExit(activeSession.id, {
+        exitTime: new Date().toISOString(),
       })
 
       if (response.success && response.data) {
-        updateSpaceStatus(activeSession.parking_space_id, 'available')
+        updateSpaceStatus(activeSession.parkingSpaceId, 'available')
         updateSession(activeSession.id, {
-          exit_time: new Date().toISOString(),
+          exitTime: new Date().toISOString(),
           status: 'completed',
         })
         
@@ -337,7 +336,7 @@ export function VehicleExit() {
                     <div className="space-y-2">
                       {foundVehicles.map((vehicle) => {
                         const session = sessions.find(
-                          s => s.license_plate === vehicle.license_plate && s.status === 'active'
+                          s => s.licensePlate === vehicle.licensePlate && s.status === 'active'
                         )
                         return (
                           <div
@@ -351,16 +350,16 @@ export function VehicleExit() {
                           >
                             <div className="flex justify-between items-start">
                               <div>
-                                <p className="font-medium">{vehicle.license_plate}</p>
+                                <p className="font-medium">{vehicle.licensePlate}</p>
                                 <p className="text-sm text-gray-600">
-                                  Espacio: {session?.parking_space_id}
+                                  Espacio: {session?.parkingSpaceId}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                  Ingreso: {session ? new Date(session.entry_time).toLocaleString() : 'N/A'}
+                                  Ingreso: {session ? new Date(session.entryTime).toLocaleString() : 'N/A'}
                                 </p>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {session ? calculateDuration(session.entry_time) : 'N/A'}
+                                {session ? calculateDuration(session.entryTime) : 'N/A'}
                               </div>
                             </div>
                           </div>
@@ -380,11 +379,11 @@ export function VehicleExit() {
                       <div className="space-y-2">
                         <div>
                           <span className="font-medium text-blue-700">Vehículo:</span>
-                          <p className="text-blue-600">{selectedVehicle.license_plate}</p>
+                          <p className="text-blue-600">{selectedVehicle.licensePlate}</p>
                         </div>
                         <div>
                           <span className="font-medium text-blue-700">Propietario:</span>
-                          <p className="text-blue-600">{selectedVehicle.owner_name}</p>
+                          <p className="text-blue-600">{selectedVehicle.ownerName}</p>
                         </div>
                         <div>
                           <span className="font-medium text-blue-700">DNI:</span>
@@ -394,15 +393,15 @@ export function VehicleExit() {
                       <div className="space-y-2">
                         <div>
                           <span className="font-medium text-blue-700">Espacio:</span>
-                          <p className="text-blue-600">{activeSession.parking_space_id}</p>
+                          <p className="text-blue-600">{activeSession.parkingSpaceId}</p>
                         </div>
                         <div>
                           <span className="font-medium text-blue-700">Ingreso:</span>
-                          <p className="text-blue-600">{new Date(activeSession.entry_time).toLocaleString()}</p>
+                          <p className="text-blue-600">{new Date(activeSession.entryTime).toLocaleString()}</p>
                         </div>
                         <div>
                           <span className="font-medium text-blue-700">Duración:</span>
-                          <p className="text-blue-600">{calculateDuration(activeSession.entry_time)}</p>
+                          <p className="text-blue-600">{calculateDuration(activeSession.entryTime)}</p>
                         </div>
                       </div>
                     </div>
@@ -444,20 +443,20 @@ export function VehicleExit() {
                         className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => {
                           setSearchType('plate')
-                          setSearchValue(session.license_plate)
+                          setSearchValue(session.licensePlate)
                           searchVehicles()
                         }}
                       >
                         <div className="flex justify-between items-start">
                           <div className="text-sm">
-                            <p className="font-medium">Espacio {session.parking_space_id}</p>
-                            <p className="text-gray-600">Placa: {session.license_plate}</p>
+                            <p className="font-medium">Espacio {session.parkingSpaceId}</p>
+                            <p className="text-gray-600">Placa: {session.licensePlate}</p>
                             <p className="text-gray-600">
-                              Ingreso: {new Date(session.entry_time).toLocaleString()}
+                              Ingreso: {new Date(session.entryTime).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {calculateDuration(session.entry_time)}
+                            {calculateDuration(session.entryTime)}
                           </div>
                         </div>
                       </div>

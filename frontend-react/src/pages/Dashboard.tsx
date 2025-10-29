@@ -328,7 +328,7 @@ export function Dashboard() {
                   </thead>
                   <tbody>
                     {activeSessions.slice(0, 6).map((session) => {
-                      const entryTime = new Date(session.entry_time)
+                      const entryTime = new Date(session.entryTime)
                       const duration = Math.floor((Date.now() - entryTime.getTime()) / (1000 * 60))
                       const hours = Math.floor(duration / 60)
                       const minutes = duration % 60
@@ -337,12 +337,12 @@ export function Dashboard() {
                         <tr key={session.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                           <td className="py-3 px-4">
                             <span className="font-medium text-gray-900">
-                              {session.license_plate}
+                              {session.licensePlate}
                             </span>
                           </td>
                           <td className="py-3 px-4">
                             <span className="text-gray-700">
-                              {session.parking_space_id}
+                              {session.parkingSpaceId}
                             </span>
                           </td>
                           <td className="py-3 px-4">
