@@ -44,8 +44,9 @@ export function UserManagement() {
       const response = await userService.getUsers();
 
       if (response.success && response.data) {
-        // Los usuarios están directamente en response.data.users
-        const usersData = Array.isArray(response.data.users) ? response.data.users : [];
+        // Los usuarios están directamente en response.data.data
+        const responseData = response.data as any;
+        const usersData = Array.isArray(responseData.data) ? responseData.data : [];
         setUsers(usersData);
         setFilteredUsers(usersData);
       } else {

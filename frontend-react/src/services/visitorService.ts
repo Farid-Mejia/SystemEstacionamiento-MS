@@ -120,7 +120,9 @@ export const visitorService = {
     }
 
     // Filtrar localmente por nombre o DNI
-    const visitors = Array.isArray(response.data.visitors) ? response.data.visitors : [];
+    // Los visitantes están en response.data.data (estructura de ms-visitors)
+    const responseData = response.data as any;
+    const visitors = Array.isArray(responseData.data) ? responseData.data : [];
     const filtered = visitors.filter((visitor: Visitor) => 
       visitor.dni.toLowerCase().includes(searchTerm.toLowerCase()) ||
       visitor.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -7,16 +7,16 @@ spring:
         webflux:
           routes:
             - id: ms-users
-              uri: lb://ms-users
+              uri: lb://MS-USERS
               predicates:
                 - Path=/api/users/**
-              default-filters:
+              filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
             - id: ms-visitors
-              uri: lb://ms-visitors
+              uri: lb://MS-VISITORS
               predicates:
                 - Path=/api/visitors/**
-              default-filters:
+              filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
   port: 8000

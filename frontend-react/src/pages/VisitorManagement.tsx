@@ -38,8 +38,9 @@ export function VisitorManagement() {
       const response = await visitorService.getVisitors();
 
       if (response.success && response.data) {
-        // Los visitantes están directamente en response.data.visitors
-        const visitorsData = Array.isArray(response.data.visitors) ? response.data.visitors : [];
+        // Los visitantes están directamente en response.data.data
+        const responseData = response.data as any;
+        const visitorsData = Array.isArray(responseData.data) ? responseData.data : [];
         setVisitors(visitorsData);
         setFilteredVisitors(visitorsData);
       } else {
@@ -241,43 +242,70 @@ export function VisitorManagement() {
   return (
     <Layout title="Gestión de Visitantes">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Visitantes</h1>
-          <Button onClick={handleCreateVisitor} className="flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Nuevo Visitante</span>
-          </Button>
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestión de Visitantes</h1>
+            <p className="text-gray-600 text-sm">Administra los visitantes del sistema</p>
+          </div>
+
+          <div className="flex gap-3">
+            <Button onClick={loadVisitors} disabled={isLoading} variant="outline" size="sm">
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+
+            <Button onClick={handleCreateVisitor} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Visitante
+            </Button>
+          </div>
+        </div>
+
+        {/* Estadísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Visitantes</p>
+                  <p className="text-2xl font-bold text-gray-900">{visitors.length}</p>
+                </div>
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Visitantes Filtrados</p>
+                  <p className="text-2xl font-bold text-gray-900">{filteredVisitors.length}</p>
+                </div>
+                <UserCheck className="w-8 h-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filtros */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <Search className="w-5 h-5" />
-              <span>Filtros de Búsqueda</span>
+              Filtros
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Label htmlFor="search">Buscar por DNI o Nombre</Label>
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="search">Buscar</Label>
                 <Input
                   id="search"
-                  placeholder="Ingrese DNI, nombres o apellidos..."
+                  placeholder="Buscar por DNI, nombres o apellidos..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={loadVisitors}
-                  disabled={isLoading}
-                  className="flex items-center space-x-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>Actualizar</span>
-                </Button>
               </div>
             </div>
           </CardContent>
@@ -286,67 +314,65 @@ export function VisitorManagement() {
         {/* Lista de visitantes */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>Lista de Visitantes ({filteredVisitors.length})</span>
-            </CardTitle>
+            <CardTitle className="text-lg">Visitantes ({filteredVisitors.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-                <span>Cargando visitantes...</span>
+              <div className="flex justify-center py-8">
+                <RefreshCw className="w-6 h-6 animate-spin" />
               </div>
             ) : filteredVisitors.length === 0 ? (
-              <div className="text-center py-8">
-                <UserCheck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay visitantes</h3>
-                <p className="text-gray-500">
-                  {filters.search ? 'No se encontraron visitantes con los criterios de búsqueda.' : 'Aún no hay visitantes registrados.'}
-                </p>
+              <div className="text-center py-8 text-gray-500">
+                {filters.search ? 'No se encontraron visitantes con los criterios de búsqueda.' : 'No hay visitantes registrados.'}
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full table-auto">
+                <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">DNI</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Nombres</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Apellido Paterno</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Apellido Materno</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Fecha Registro</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Acciones</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Visitante</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">DNI</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Creado</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-600">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredVisitors.map((visitor) => (
                       <tr key={visitor.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 font-mono text-sm">{visitor.dni}</td>
-                        <td className="py-3 px-4">{visitor.firstName}</td>
-                        <td className="py-3 px-4">{visitor.paternalLastName}</td>
-                        <td className="py-3 px-4">{visitor.maternalLastName}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {visitor.firstName} {visitor.paternalLastName} {visitor.maternalLastName}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {visitor.paternalLastName}, {visitor.maternalLastName}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                            {visitor.dni}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-500">
                           {formatDate(visitor.createdAt)}
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex justify-end gap-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditVisitor(visitor)}
-                              className="flex items-center space-x-1"
                             >
-                              <Edit className="w-3 h-3" />
-                              <span>Editar</span>
+                              <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setDeleteConfirm(visitor)}
-                              className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700"
                             >
-                              <Trash2 className="w-3 h-3" />
-                              <span>Eliminar</span>
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </td>
