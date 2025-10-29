@@ -42,6 +42,7 @@ export function VehicleEntry() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [visitorSummary, setVisitorSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchingUser, setIsSearchingUser] = useState(false);
 
@@ -70,8 +71,8 @@ export function VehicleEntry() {
   };
 
   const validatePlate = (plate: string): boolean => {
-    return /^[A-Z]{3}\d{3}$/.test(plate)
-  }
+    return /^[A-Z]{3}\d{3}$/.test(plate);
+  };
 
   const searchUserByDni = async () => {
     if (!formData.userDni.trim()) {
@@ -81,73 +82,114 @@ export function VehicleEntry() {
 
     if (!validateDni(formData.userDni)) {
       toast.error('El DNI debe tener exactamente 8 dígitos');
-      setErrors(prev => ({ ...prev, userDni: 'El DNI debe tener exactamente 8 dígitos' }))
-      return
+      setErrors((prev) => ({ ...prev, userDni: 'El DNI debe tener exactamente 8 dígitos' }));
+      return;
     }
 
-    // Verificar si el DNI ya tiene un vehículo parqueado
-    try {
-      const dniCheckResponse = await parkingService.checkDniInUse(formData.userDni)
-      if (dniCheckResponse.success && dniCheckResponse.data) {
-        toast.error('Este DNI ya tiene un vehículo registrado en el estacionamiento')
-        setErrors(prev => ({ ...prev, userDni: 'Este DNI ya tiene un vehículo parqueado' }))
-        return
-      }
-    } catch (error) {
-      console.error('Error checking DNI:', error)
-    }
+    setIsSearchingUser(true);
+    setVisitorSummary(null); // Limpiar resumen anterior
 
-    setIsSearchingUser(true)
     try {
-      // Simulamos búsqueda de usuario por DNI
-      const mockUser = {
-        dni: formData.userDni,
-        name: `Usuario ${formData.userDni}`,
-        email: `user${formData.userDni}@cibertec.edu.pe`,
+      // Buscar visitante por DNI usando la API real
+      const visitorResponse = await parkingService.getVisitorByDni(formData.userDni);
+
+      if (visitorResponse.success && visitorResponse.data) {
+        const visitor = visitorResponse.data;
+
+        // Construir el nombre completo del visitante
+        const fullName = visitor.fullName || `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}`.trim();
+
+        // Verificar si el visitante tiene sesiones activas
+        const sessionsResponse = await parkingService.getSessionsByVisitorId(visitor.id);
+
+        if (sessionsResponse.success && sessionsResponse.data) {
+          // Filtrar solo las sesiones activas
+          const activeSessions = sessionsResponse.data.filter((session: any) => session.status === 'ACTIVE');
+
+          if (activeSessions.length > 0) {
+            // El visitante ya tiene vehículos estacionados
+            const activeSession = activeSessions[0];
+            const summary = {
+              dni: visitor.dni,
+              fullName: fullName,
+              status: 'CON VEHÍCULO ESTACIONADO',
+              licensePlate: activeSession.licensePlate || 'N/A',
+              parkingSpace: activeSession.parkingSpaceId || 'N/A',
+              entryTime: activeSession.entryTime || 'N/A',
+            };
+
+            setVisitorSummary(summary);
+            toast.error('Este visitante ya tiene un vehículo estacionado');
+            setErrors((prev) => ({ ...prev, userDni: 'Este DNI ya tiene un vehículo parqueado' }));
+            return;
+          }
+        }
+
+        // El visitante existe pero no tiene sesiones activas
+        const userInfo = {
+          dni: visitor.dni,
+          name: fullName,
+          id: visitor.id,
+        };
+
+        const summary = {
+          dni: visitor.dni,
+          fullName: fullName,
+          status: 'SIN VEHÍCULOS ESTACIONADOS',
+          licensePlate: null,
+          parkingSpace: null,
+          entryTime: null,
+        };
+
+        setUserInfo(userInfo);
+        setVisitorSummary(summary);
+        setValidatedSteps((prev) => new Set([...prev, ValidationStep.DNI]));
+        setCurrentStep(ValidationStep.PLATE);
+        setErrors((prev) => ({ ...prev, userDni: undefined }));
+        toast.success('Visitante encontrado - Ahora ingrese la placa del vehículo');
+      } else {
+        toast.error('Visitante no encontrado con el DNI proporcionado');
+        setErrors((prev) => ({ ...prev, userDni: 'Visitante no encontrado' }));
       }
-      
-      setUserInfo(mockUser)
-      setValidatedSteps(prev => new Set([...prev, ValidationStep.DNI]))
-      setCurrentStep(ValidationStep.PLATE)
-      setErrors(prev => ({ ...prev, userDni: undefined }))
-      toast.success('Usuario encontrado - Ahora ingrese la placa del vehículo')
     } catch (error) {
-      toast.error('Error al buscar el usuario')
+      console.error('Error al buscar el visitante:', error);
+      toast.error('Error al buscar el visitante. Verifique la conexión.');
+      setErrors((prev) => ({ ...prev, userDni: 'Error al buscar el visitante' }));
     } finally {
-      setIsSearchingUser(false)
+      setIsSearchingUser(false);
     }
-  }
+  };
 
   const validateLicensePlate = async () => {
     if (!formData.licensePlate.trim()) {
-      toast.error('Ingrese una placa válida')
-      return
+      toast.error('Ingrese una placa válida');
+      return;
     }
 
     if (!validatePlate(formData.licensePlate)) {
-      toast.error('La placa debe tener el formato ABC123')
-      setErrors(prev => ({ ...prev, licensePlate: 'La placa debe tener el formato ABC123' }))
-      return
+      toast.error('La placa debe tener el formato ABC123');
+      setErrors((prev) => ({ ...prev, licensePlate: 'La placa debe tener el formato ABC123' }));
+      return;
     }
 
     // Verificar si la placa ya está en uso
     try {
-      const plateCheckResponse = await parkingService.checkPlateInUse(formData.licensePlate)
+      const plateCheckResponse = await parkingService.checkPlateInUse(formData.licensePlate);
       if (plateCheckResponse.success && plateCheckResponse.data) {
-        toast.error('Esta placa ya tiene un vehículo registrado en el estacionamiento')
-        setErrors(prev => ({ ...prev, licensePlate: 'Esta placa ya está registrada' }))
-        return
+        toast.error('Esta placa ya tiene un vehículo registrado en el estacionamiento');
+        setErrors((prev) => ({ ...prev, licensePlate: 'Esta placa ya está registrada' }));
+        return;
       }
     } catch (error) {
-      console.error('Error checking plate:', error)
+      console.error('Error checking plate:', error);
     }
 
-    setPlateValidated(true)
-    setValidatedSteps(prev => new Set([...prev, ValidationStep.PLATE]))
-    setCurrentStep(ValidationStep.REGISTRATION)
-    setErrors(prev => ({ ...prev, licensePlate: undefined }))
-    toast.success('Placa validada - Ahora seleccione un espacio y registre el ingreso')
-  }
+    setPlateValidated(true);
+    setValidatedSteps((prev) => new Set([...prev, ValidationStep.PLATE]));
+    setCurrentStep(ValidationStep.REGISTRATION);
+    setErrors((prev) => ({ ...prev, licensePlate: undefined }));
+    toast.success('Placa validada - Ahora seleccione un espacio y registre el ingreso');
+  };
 
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -240,7 +282,7 @@ export function VehicleEntry() {
       const entryData: CreateParkingSessionRequest = {
         licensePlate: formData.licensePlate.toUpperCase(),
         parkingSpaceId: selectedSpace,
-        visitorId: parseInt(userInfo.dni),
+        visitorId: userInfo.id,
         entryTime: new Date().toISOString(),
       };
 
@@ -332,16 +374,32 @@ export function VehicleEntry() {
                   {errors.userDni && <p className="text-sm text-red-500">{errors.userDni}</p>}
                 </div>
 
-                {userInfo && (
-                  <div className="p-3 bg-green-100 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-800 mb-1">✓ Usuario Validado</h4>
-                    <div className="text-sm text-green-700 space-y-1">
+                {visitorSummary && (
+                  <div className={`p-3 border rounded-lg ${visitorSummary.status === 'CON VEHÍCULO ESTACIONADO' ? 'bg-red-100 border-red-200' : 'bg-green-100 border-green-200'}`}>
+                    <h4 className={`font-medium mb-2 ${visitorSummary.status === 'CON VEHÍCULO ESTACIONADO' ? 'text-red-800' : 'text-green-800'}`}>{visitorSummary.status === 'CON VEHÍCULO ESTACIONADO' ? '⚠️ Visitante con Vehículo Estacionado' : '✓ Visitante Disponible'}</h4>
+                    <div className={`text-sm space-y-1 ${visitorSummary.status === 'CON VEHÍCULO ESTACIONADO' ? 'text-red-700' : 'text-green-700'}`}>
                       <p>
-                        <strong>Nombre:</strong> {userInfo.name}
+                        <strong>Nombre:</strong> {visitorSummary.fullName}
                       </p>
                       <p>
-                        <strong>DNI:</strong> {userInfo.dni}
+                        <strong>DNI:</strong> {visitorSummary.dni}
                       </p>
+                      <p>
+                        <strong>Estado:</strong> {visitorSummary.status}
+                      </p>
+                      {visitorSummary.licensePlate && (
+                        <>
+                          <p>
+                            <strong>Placa:</strong> {visitorSummary.licensePlate}
+                          </p>
+                          <p>
+                            <strong>Espacio:</strong> {visitorSummary.parkingSpace}
+                          </p>
+                          <p>
+                            <strong>Hora de Ingreso:</strong> {new Date(visitorSummary.entryTime).toLocaleString()}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -360,15 +418,7 @@ export function VehicleEntry() {
                 <div className="space-y-2">
                   <Label htmlFor="licensePlate">Placa del Vehículo</Label>
                   <div className="flex space-x-2">
-                    <Input
-                      id="licensePlate"
-                      placeholder="ABC123"
-                      value={formData.licensePlate}
-                      onChange={(e) => handleInputChange('licensePlate', e.target.value.toUpperCase())}
-                      className={errors.licensePlate ? 'border-red-500' : ''}
-                      maxLength={6}
-                      disabled={!validatedSteps.has(ValidationStep.DNI) || validatedSteps.has(ValidationStep.PLATE)}
-                    />
+                    <Input id="licensePlate" placeholder="ABC123" value={formData.licensePlate} onChange={(e) => handleInputChange('licensePlate', e.target.value.toUpperCase())} className={errors.licensePlate ? 'border-red-500' : ''} maxLength={6} disabled={!validatedSteps.has(ValidationStep.DNI) || validatedSteps.has(ValidationStep.PLATE)} />
                     <Button onClick={validateLicensePlate} disabled={!validatedSteps.has(ValidationStep.DNI) || validatedSteps.has(ValidationStep.PLATE)} size="sm">
                       <CheckCircle className="w-4 h-4" />
                     </Button>
@@ -377,12 +427,7 @@ export function VehicleEntry() {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="needsDisabledSpace"
-                    checked={formData.needsDisabledSpace}
-                    onCheckedChange={(checked) => handleInputChange('needsDisabledSpace', checked as boolean)}
-                    disabled={!validatedSteps.has(ValidationStep.DNI)}
-                  />
+                  <Checkbox id="needsDisabledSpace" checked={formData.needsDisabledSpace} onCheckedChange={(checked) => handleInputChange('needsDisabledSpace', checked as boolean)} disabled={!validatedSteps.has(ValidationStep.DNI)} />
                   <Label htmlFor="needsDisabledSpace" className="flex items-center space-x-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     <Accessibility className="w-4 h-4 text-purple-600" />
                     <span>Necesita espacio para discapacidad</span>
@@ -414,8 +459,6 @@ export function VehicleEntry() {
                 </Button>
               </CardContent>
             </Card>
-
-
           </div>
 
           {/* Lado derecho - Selección de espacios */}

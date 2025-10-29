@@ -30,6 +30,9 @@ public class SecurityConfig {
                                 .cors(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(authz -> authz
                                                 .requestMatchers("/api/parking-spaces/health").permitAll()
+                                .requestMatchers("/api/parking-spaces/*/status").permitAll() // Temporal para inter-microservice calls
+                                .requestMatchers("/api/parking-spaces/init-test-data").permitAll() // Temporal para crear datos de prueba
+                                .requestMatchers("/api/parking-spaces/list-all").permitAll() // Temporal para listar parking spaces
                                                 .requestMatchers("/api/parking-spaces/**").authenticated()
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(ex -> ex

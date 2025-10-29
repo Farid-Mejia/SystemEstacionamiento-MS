@@ -3,6 +3,7 @@ package com.cibertec.parkingspaces.controller;
 import com.cibertec.parkingspaces.dto.ApiResponse;
 import com.cibertec.parkingspaces.dto.CreateParkingSpaceRequest;
 import com.cibertec.parkingspaces.dto.UpdateParkingSpaceRequest;
+import com.cibertec.parkingspaces.dto.UpdateStatusRequest;
 import com.cibertec.parkingspaces.entity.ParkingSpace;
 import com.cibertec.parkingspaces.service.ParkingSpaceService;
 import jakarta.validation.Valid;
@@ -118,6 +119,24 @@ public class ParkingSpaceController {
         }
     }
 
+    // Actualizar solo el estado del espacio de estacionamiento
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<ParkingSpace>> updateParkingSpaceStatus(
+            @PathVariable Long id, 
+            @Valid @RequestBody UpdateStatusRequest request) {
+        
+        try {
+            ParkingSpace updatedParkingSpace = parkingSpaceService.updateParkingSpaceStatus(id, request.getStatus());
+            return ResponseEntity.ok(ApiResponse.success("Estado del espacio de estacionamiento actualizado exitosamente", updatedParkingSpace));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error al actualizar el estado del espacio de estacionamiento: " + e.getMessage()));
+        }
+    }
+
     // Eliminar espacio de estacionamiento
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteParkingSpace(@PathVariable Long id) {
@@ -162,6 +181,61 @@ public class ParkingSpaceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Error al obtener las estadísticas: " + e.getMessage()));
+        }
+    }
+
+    // Endpoint temporal para crear parking spaces de prueba
+    @PostMapping("/init-test-data")
+    public ResponseEntity<ApiResponse<String>> initTestData() {
+        try {
+            StringBuilder result = new StringBuilder("Creando datos de prueba:\n");
+            
+            // Crear algunos parking spaces de prueba
+            for (int i = 1; i <= 5; i++) {
+                CreateParkingSpaceRequest request = new CreateParkingSpaceRequest();
+                request.setSpaceNumber(i);
+                request.setFloor("SS");
+                request.setIsDisabledSpace(false);
+                request.setStatus("available");
+                
+                try {
+                    ParkingSpace created = parkingSpaceService.createParkingSpace(request);
+                    result.append("✓ Espacio ").append(i).append(" creado con ID: ").append(created.getId()).append("\n");
+                } catch (Exception e) {
+                    result.append("✗ Espacio ").append(i).append(" falló: ").append(e.getMessage()).append("\n");
+                }
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(result.toString()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error al crear datos de prueba: " + e.getMessage()));
+        }
+    }
+
+    // Endpoint temporal para listar todos los parking spaces
+    @GetMapping("/list-all")
+    public ResponseEntity<ApiResponse<String>> listAllParkingSpaces() {
+        try {
+            List<ParkingSpace> spaces = parkingSpaceService.getAllParkingSpaces();
+            StringBuilder result = new StringBuilder("Parking spaces existentes:\n");
+            
+            for (ParkingSpace space : spaces) {
+                result.append("ID: ").append(space.getId())
+                      .append(", Número: ").append(space.getSpaceNumber())
+                      .append(", Estado: ").append(space.getStatus())
+                      .append(", Piso: ").append(space.getFloor())
+                      .append("\n");
+            }
+            
+            if (spaces.isEmpty()) {
+                result.append("No hay parking spaces en la base de datos");
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(result.toString()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error al listar parking spaces: " + e.getMessage()));
         }
     }
 

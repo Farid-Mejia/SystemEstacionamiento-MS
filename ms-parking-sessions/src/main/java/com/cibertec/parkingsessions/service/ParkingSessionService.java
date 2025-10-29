@@ -2,8 +2,10 @@ package com.cibertec.parkingsessions.service;
 
 import com.cibertec.parkingsessions.dto.CreateParkingSessionRequest;
 import com.cibertec.parkingsessions.dto.ExitParkingSessionRequest;
+import com.cibertec.parkingsessions.dto.UpdateStatusRequest;
 import com.cibertec.parkingsessions.entity.ParkingSession;
 import com.cibertec.parkingsessions.repository.ParkingSessionRepository;
+import com.cibertec.parkingsessions.client.ParkingSpaceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,9 @@ public class ParkingSessionService {
 
     @Autowired
     private ParkingSessionRepository parkingSessionRepository;
+    
+    @Autowired
+    private ParkingSpaceClient parkingSpaceClient;
 
     // Obtener todas las sesiones
     public List<ParkingSession> getAllParkingSessions() {
@@ -47,7 +52,41 @@ public class ParkingSessionService {
         parkingSession.setEntryTime(request.getEntryTime() != null ? request.getEntryTime() : LocalDateTime.now());
         parkingSession.setStatus(ParkingSession.SessionStatus.active);
 
-        return parkingSessionRepository.save(parkingSession);
+        // Guardar la sesión de estacionamiento
+        ParkingSession savedSession = parkingSessionRepository.save(parkingSession);
+        
+        // Actualizar el estado del espacio de estacionamiento a occupied
+        try {
+            updateParkingSpaceStatus(request.getParkingSpaceId(), "occupied");
+        } catch (Exception e) {
+            // Log del error pero no fallar la transacción principal
+            System.err.println("Error al actualizar el estado del espacio de estacionamiento: " + e.getMessage());
+        }
+
+        return savedSession;
+    }
+    
+    // Método privado para actualizar el estado del parking space usando OpenFeign
+    private void updateParkingSpaceStatus(Long parkingSpaceId, String status) {
+        try {
+            System.out.println("=== INICIANDO ACTUALIZACIÓN DE ESTADO ===");
+            System.out.println("Parking Space ID: " + parkingSpaceId);
+            System.out.println("Nuevo estado: " + status);
+            
+            UpdateStatusRequest request = new UpdateStatusRequest(status);
+            System.out.println("Request creado: " + request.getStatus());
+            
+            System.out.println("Llamando al cliente Feign...");
+            parkingSpaceClient.updateParkingSpaceStatus(parkingSpaceId, request);
+            System.out.println("Cliente Feign ejecutado exitosamente");
+            System.out.println("=== ACTUALIZACIÓN COMPLETADA ===");
+        } catch (Exception e) {
+            System.err.println("=== ERROR EN ACTUALIZACIÓN ===");
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("Tipo de error: " + e.getClass().getSimpleName());
+            e.printStackTrace();
+            throw new RuntimeException("Error al actualizar el estado del espacio de estacionamiento: " + e.getMessage());
+        }
     }
 
     // Finalizar sesión (salida)

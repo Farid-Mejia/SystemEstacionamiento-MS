@@ -116,4 +116,18 @@ public class ParkingSpaceService {
     public Long countByFloor(String floor) {
         return parkingSpaceRepository.countByFloor(floor);
     }
+
+    // Actualizar solo el estado del espacio de estacionamiento
+    public ParkingSpace updateParkingSpaceStatus(Long id, String status) {
+        Optional<ParkingSpace> optionalParkingSpace = parkingSpaceRepository.findById(id);
+        
+        if (optionalParkingSpace.isEmpty()) {
+            throw new RuntimeException("Espacio de estacionamiento no encontrado con ID: " + id);
+        }
+
+        ParkingSpace parkingSpace = optionalParkingSpace.get();
+        parkingSpace.setStatus(status);
+
+        return parkingSpaceRepository.save(parkingSpace);
+    }
 }
