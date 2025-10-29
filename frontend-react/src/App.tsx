@@ -7,6 +7,8 @@ import { Dashboard } from '@/pages/Dashboard'
 import { VehicleEntry } from '@/pages/VehicleEntry'
 import { VehicleExit } from '@/pages/VehicleExit'
 import { UserManagement } from '@/pages/UserManagement'
+import { ParkingManagement } from '@/pages/ParkingManagement'
+import { VisitorManagement } from '@/pages/VisitorManagement'
 import Reports from '@/pages/Reports'
 
 function App() {
@@ -52,6 +54,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/parking" 
+            element={
+              <ProtectedRoute>
+                <ParkingManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/visitors" 
+            element={
+              <ProtectedRoute>
+                <VisitorManagement />
               </ProtectedRoute>
             } 
           />

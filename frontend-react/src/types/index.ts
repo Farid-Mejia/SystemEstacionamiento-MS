@@ -2,31 +2,43 @@ export interface User {
   id: number
   dni: string
   username: string
-  first_name: string
-  paternal_last_name: string
-  maternal_last_name: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
   role: string
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Tipos adicionales para mantenimiento de usuarios
 export interface CreateUserRequest {
+  dni: string
   username: string
   password: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
   role: 'ADMIN' | 'OPERATOR'
 }
 
 export interface UpdateUserRequest {
+  dni?: string
   username?: string
   password?: string
+  firstName?: string
+  paternalLastName?: string
+  maternalLastName?: string
   role?: 'ADMIN' | 'OPERATOR'
 }
 
 export interface UserFormData {
+  dni: string
   username: string
   password: string
   confirmPassword: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
   role: 'ADMIN' | 'OPERATOR'
 }
 
@@ -38,11 +50,11 @@ export interface UserFilters {
 export interface Visitor {
   id: number
   dni: string
-  first_name: string
-  paternal_last_name: string
-  maternal_last_name: string
-  created_at: string
-  updated_at: string
+  firstName: string
+  paternalLastName: string
+  maternalLastName: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface AuthResponse {
@@ -67,8 +79,8 @@ export interface Vehicle {
   color: string
   brand: string
   model: string
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ParkingSpace {
@@ -77,8 +89,8 @@ export interface ParkingSpace {
   floor: 'SS' | 'S1'
   status: 'available' | 'occupied' | 'maintenance'
   is_disabled_space: boolean
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ParkingSession {
@@ -90,8 +102,8 @@ export interface ParkingSession {
   exit_time?: string
   duration_seconds?: number
   status: 'active' | 'completed' | 'cancelled'
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface VehicleRegistrationRequest {

@@ -12,6 +12,12 @@ spring:
                 - Path=/api/users/**
               default-filters:
                 - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            - id: ms-visitors
+              uri: lb://ms-visitors
+              predicates:
+                - Path=/api/visitors/**
+              default-filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
   port: 8000
 

@@ -1,4 +1,5 @@
-import { User, ApiResponse } from '@/types';
+import { User, ApiResponse, CreateUserRequest, UpdateUserRequest } from '@/types';
+import { useAuthStore } from '@/stores/authStore';
 
 const API_BASE_URL = 'http://localhost:8000';
 const API_TIMEOUT = 10000;
@@ -8,7 +9,8 @@ const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
-  const token = localStorage.getItem('auth_token');
+  // Obtener el token del authStore
+  const token = useAuthStore.getState().token;
   
   if (!token) {
     return {
@@ -70,17 +72,7 @@ const apiRequest = async <T>(
   }
 };
 
-export interface CreateUserRequest {
-  username: string;
-  password: string;
-  role: 'ADMIN' | 'OPERATOR';
-}
 
-export interface UpdateUserRequest {
-  username?: string;
-  password?: string;
-  role?: 'ADMIN' | 'OPERATOR';
-}
 
 export const userService = {
   // Obtener todos los usuarios

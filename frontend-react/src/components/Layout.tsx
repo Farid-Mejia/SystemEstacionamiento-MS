@@ -1,34 +1,40 @@
-import { ReactNode } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/stores/authStore'
-import { Button } from '@/components/ui/button'
-import { 
-  LayoutDashboard, 
-  Car, 
-  LogIn, 
-  LogOut, 
-  ArrowRight, 
-  ArrowLeft,
-  User,
-  Users,
-  BarChart3
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ReactNode, useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
+import { Button } from '@/components/ui/button';
+import { LayoutDashboard, LogOut, ArrowRight, ArrowLeft, User, Users, BarChart3, Settings, ChevronDown, ParkingCircle, UserCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
-  children: ReactNode
-  title?: string
+  children: ReactNode;
+  title?: string;
 }
 
 export function Layout({ children, title }: LayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuthStore()
+  const [isGestionOpen, setIsGestionOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsGestionOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, []);
 
   const menuItems = [
     {
@@ -47,16 +53,31 @@ export function Layout({ children, title }: LayoutProps) {
       path: '/vehicles/exit',
     },
     {
-      label: 'Gestión de Usuarios',
-      icon: Users,
-      path: '/users',
-    },
-    {
       label: 'Reportes',
       icon: BarChart3,
       path: '/reports',
     },
-  ]
+  ];
+
+  const gestionItems = [
+    {
+      label: 'Usuarios',
+      icon: Users,
+      path: '/users',
+    },
+    {
+      label: 'Estacionamiento',
+      icon: ParkingCircle,
+      path: '/parking',
+    },
+    {
+      label: 'Visitantes',
+      icon: UserCheck,
+      path: '/visitors',
+    },
+  ];
+
+  const isGestionActive = gestionItems.some((item) => location.pathname === item.path);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,9 +85,7 @@ export function Layout({ children, title }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">
-                ParkSystem
-              </h1>
+              <h1 className="text-xl font-semibold text-gray-900">ParkSystem</h1>
               {title && (
                 <>
                   <span className="text-gray-400">/</span>
@@ -74,20 +93,16 @@ export function Layout({ children, title }: LayoutProps) {
                 </>
               )}
             </div>
-            
+
             {user && (
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <User className="w-4 h-4" />
-                  <span>{user.first_name} {user.paternal_last_name}</span>
-
+                  <span>
+                    {user.firstName} {user.paternalLastName}
+                  </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2"
-                >
+                <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center space-x-2">
                   <LogOut className="w-4 h-4" />
                   <span>Cerrar Sesión</span>
                 </Button>
@@ -102,25 +117,62 @@ export function Layout({ children, title }: LayoutProps) {
           <nav className="mb-8">
             <div className="flex flex-wrap gap-2">
               {menuItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.path
-                
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+
                 return (
-                  <Button
-                    key={item.path}
-                    variant={isActive ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => navigate(item.path)}
-                    className={cn(
-                      "flex items-center space-x-2",
-                      isActive && "bg-blue-600 hover:bg-blue-700"
-                    )}
-                  >
+                  <Button key={item.path} variant={isActive ? 'default' : 'outline'} size="sm" onClick={() => navigate(item.path)} className={cn('flex items-center space-x-2', isActive && 'bg-blue-600 hover:bg-blue-700')}>
                     <Icon className="w-4 h-4" />
                     <span>{item.label}</span>
                   </Button>
-                )
+                );
               })}
+              
+              {/* Dropdown de Gestión */}
+              <div className="relative" ref={dropdownRef}>
+                <Button
+                  variant={isGestionActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsGestionOpen(!isGestionOpen)}
+                  className={cn(
+                    "flex items-center space-x-2",
+                    isGestionActive && "bg-blue-600 hover:bg-blue-700"
+                  )}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Gestión</span>
+                  <ChevronDown className={cn(
+                    "w-4 h-4 transition-transform",
+                    isGestionOpen && "rotate-180"
+                  )} />
+                </Button>
+                
+                {isGestionOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    {gestionItems.map((item) => {
+                      const Icon = item.icon
+                      const isActive = location.pathname === item.path
+                      
+                      return (
+                        <button
+                          key={item.path}
+                          onClick={() => {
+                            navigate(item.path)
+                            setIsGestionOpen(false)
+                          }}
+                          className={cn(
+                            "w-full flex items-center space-x-2 px-4 py-2 text-sm text-left hover:bg-gray-50",
+                            isActive && "bg-blue-50 text-blue-600"
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </nav>
         )}
@@ -128,5 +180,5 @@ export function Layout({ children, title }: LayoutProps) {
         <main>{children}</main>
       </div>
     </div>
-  )
+  );
 }
