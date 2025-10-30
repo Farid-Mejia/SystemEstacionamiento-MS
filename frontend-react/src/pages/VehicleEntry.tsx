@@ -279,9 +279,17 @@ export function VehicleEntry() {
     setIsLoading(true);
 
     try {
+      // Buscar el espacio seleccionado para obtener su ID real
+      const selectedSpaceObject = spaces.find(s => s.spaceNumber === selectedSpace);
+      if (!selectedSpaceObject) {
+        toast.error('Error: No se pudo encontrar el espacio seleccionado');
+        setIsLoading(false);
+        return;
+      }
+
       const entryData: CreateParkingSessionRequest = {
         licensePlate: formData.licensePlate.toUpperCase(),
-        parkingSpaceId: selectedSpace,
+        parkingSpaceId: selectedSpaceObject.id, // Usar el ID real del espacio, no el número
         visitorId: userInfo.id,
         entryTime: new Date().toISOString(),
       };
@@ -294,6 +302,9 @@ export function VehicleEntry() {
         if (response.data) {
           addSession(response.data);
         }
+
+        // Recargar espacios para asegurar sincronización
+        await loadSpaces();
 
         await Swal.fire({
           title: '¡Ingreso Registrado!',

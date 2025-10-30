@@ -32,9 +32,23 @@ export function Dashboard() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState<'all' | 'SS' | 'S1'>('all')
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0)
 
-  const loadData = async () => {
+  const loadData = async (force = false) => {
+    // Debounce: evitar llamadas si la última fue hace menos de 2 segundos
+    const now = Date.now()
+    if (!force && now - lastLoadTime < 2000) {
+      return
+    }
+
+    // Evitar múltiples llamadas simultáneas
+    if (isLoading && !force) {
+      return
+    }
+
     setIsLoading(true)
+    setLastLoadTime(now)
+    
     try {
       const spacesResponse = await parkingService.getParkingSpaces()
       
@@ -42,27 +56,52 @@ export function Dashboard() {
         setSpaces(spacesResponse.data)
       }
 
-      // TODO: Implementar getSessions cuando el endpoint esté disponible
-      // const sessionsResponse = await parkingService.getSessions()
-      // if (sessionsResponse.success && sessionsResponse.data) {
-      //   setSessions(sessionsResponse.data)
-      // }
+      // Cargar sesiones activas para tener datos completos
+      const sessionsResponse = await parkingService.getSessions()
+      if (sessionsResponse.success && sessionsResponse.data) {
+        setSessions(sessionsResponse.data)
+      }
     } catch (error) {
+      console.error('Error al cargar datos:', error)
       toast.error('Error al cargar los datos')
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleRefresh = () => {
+    loadData(true)
+  }
+
   useEffect(() => {
-    loadData()
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
+    // Carga inicial
+    loadData(true)
+    
+    // Auto-refresh every 10 seconds (reducido de 5 para menos carga)
+    const interval = setInterval(() => loadData(), 10000)
+    
+    // Manejar cambios de visibilidad y foco
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadData()
+      }
+    }
+
+    const handleFocus = () => {
+      loadData()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
   }, [])
 
-  const ssSpaces = getSpacesByFloor('SS')
-  const s1Spaces = getSpacesByFloor('S1')
+  // Calculated values for the dashboard
   const availableSpaces = getAvailableSpaces()
   const occupiedSpaces = getOccupiedSpaces()
   const activeSessions = sessions.filter(session => session.status === 'active')
@@ -144,7 +183,7 @@ export function Dashboard() {
           
           <div className="flex gap-3">
             <Button
-              onClick={loadData}
+              onClick={handleRefresh}
               disabled={isLoading}
               variant="outline"
               size="sm"
@@ -269,12 +308,14 @@ export function Dashboard() {
                 </div>
               </div>
 
+
+
               {/* Parking Grids */}
               {(selectedFloor === 'all' || selectedFloor === 'SS') && (
                 <div>
                   <h3 className="text-base font-semibold mb-2">Primer Piso (SS)</h3>
                   <ParkingGrid
-                    spaces={ssSpaces}
+                    spaces={getSpacesByFloor('SS')}
                     floor="SS"
                   />
                 </div>
@@ -284,7 +325,7 @@ export function Dashboard() {
                 <div>
                   <h3 className="text-base font-semibold mb-2">Sótano (S1)</h3>
                   <ParkingGrid
-                    spaces={s1Spaces}
+                    spaces={getSpacesByFloor('S1')}
                     floor="S1"
                   />
                 </div>
