@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useParkingStore } from '@/stores/parkingStore'
 import { parkingService } from '@/services/parkingService'
+import { visitorService } from '@/services/visitorService'
 import { Layout } from '@/components/Layout'
 import { ParkingGrid } from '@/components/ParkingGrid'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,6 +34,8 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState<'all' | 'SS' | 'S1'>('all')
   const [lastLoadTime, setLastLoadTime] = useState<number>(0)
+  const [visitors, setVisitors] = useState<any[]>([])
+  const [parkingSpaces, setParkingSpaces] = useState<any[]>([])
 
   const loadData = async (force = false) => {
     // Debounce: evitar llamadas si la última fue hace menos de 2 segundos
@@ -50,16 +53,27 @@ export function Dashboard() {
     setLastLoadTime(now)
     
     try {
+      // Cargar espacios de estacionamiento
       const spacesResponse = await parkingService.getParkingSpaces()
-      
       if (spacesResponse.success && spacesResponse.data) {
         setSpaces(spacesResponse.data)
+        setParkingSpaces(spacesResponse.data)
       }
 
       // Cargar sesiones activas para tener datos completos
       const sessionsResponse = await parkingService.getSessions()
       if (sessionsResponse.success && sessionsResponse.data) {
         setSessions(sessionsResponse.data)
+      }
+
+      // Cargar visitantes para mostrar información completa
+      const visitorsResponse = await visitorService.getVisitors()
+      if (visitorsResponse.success && visitorsResponse.data) {
+        // Manejar estructura anidada de la respuesta de ms-visitors
+        const visitorsData = visitorsResponse.data as any
+        const visitorsArray = Array.isArray(visitorsData.data) ? visitorsData.data : 
+                             Array.isArray(visitorsData) ? visitorsData : []
+        setVisitors(visitorsArray)
       }
     } catch (error) {
       console.error('Error al cargar datos:', error)
@@ -100,6 +114,36 @@ export function Dashboard() {
       window.removeEventListener('focus', handleFocus)
     }
   }, [])
+
+  // Helper functions para obtener información cruzada
+  const getVisitorInfo = (visitorId: number) => {
+    if (!visitors || !Array.isArray(visitors)) {
+      return { fullName: 'N/A', dni: 'N/A' }
+    }
+    
+    const visitor = visitors.find(v => v.id === visitorId)
+    
+    if (!visitor) {
+      return { fullName: 'N/A', dni: 'N/A' }
+    }
+    
+    const fullName = visitor.fullName || 
+      `${visitor.firstName || ''} ${visitor.paternalLastName || ''} ${visitor.maternalLastName || ''}`.trim()
+    
+    return {
+      fullName: fullName || 'N/A',
+      dni: visitor.dni || 'N/A'
+    }
+  }
+
+  const getSpaceNumber = (spaceId: number) => {
+    if (!parkingSpaces || !Array.isArray(parkingSpaces)) {
+      return spaceId // Fallback al ID si no hay datos
+    }
+    
+    const space = parkingSpaces.find(s => s.id === spaceId)
+    return space ? space.spaceNumber : spaceId // Fallback al ID si no se encuentra
+  }
 
   // Calculated values for the dashboard
   const availableSpaces = getAvailableSpaces()
@@ -357,6 +401,9 @@ export function Dashboard() {
                         Placa
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
+                        Visitante
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
                         Espacio
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
@@ -373,6 +420,8 @@ export function Dashboard() {
                       const duration = Math.floor((Date.now() - entryTime.getTime()) / (1000 * 60))
                       const hours = Math.floor(duration / 60)
                       const minutes = duration % 60
+                      const visitorInfo = getVisitorInfo(session.visitorId)
+                      const spaceNumber = getSpaceNumber(session.parkingSpaceId)
                       
                       return (
                         <tr key={session.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -382,8 +431,14 @@ export function Dashboard() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-gray-700">
-                              {session.parkingSpaceId}
+                            <div className="text-gray-700">
+                              <div className="font-medium text-sm">{visitorInfo.fullName}</div>
+                              <div className="text-xs text-gray-500">DNI: {visitorInfo.dni}</div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-gray-700 font-medium">
+                              {spaceNumber}
                             </span>
                           </td>
                           <td className="py-3 px-4">
