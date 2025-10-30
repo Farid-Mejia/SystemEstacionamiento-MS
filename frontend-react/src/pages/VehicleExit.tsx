@@ -383,9 +383,46 @@ export function VehicleExit() {
   };
 
   const calculateDuration = (entryTime: string) => {
-    const entry = new Date(entryTime);
+    // Función para parsear fecha de manera robusta
+    const parseEntryTime = (timeStr: string): Date => {
+      // Intentar diferentes formatos de fecha
+      let parsedDate = new Date(timeStr);
+      
+      // Si la fecha no es válida, intentar otros formatos
+      if (isNaN(parsedDate.getTime())) {
+        // Intentar formato ISO con zona horaria
+        parsedDate = new Date(timeStr + 'Z');
+        
+        if (isNaN(parsedDate.getTime())) {
+          // Si aún no es válida, usar fecha actual como fallback
+          console.warn('Could not parse entryTime:', timeStr, 'Using current time as fallback');
+          parsedDate = new Date();
+        }
+      }
+      
+      return parsedDate;
+    };
+
+    // Parsear la fecha de entrada
+    const entry = parseEntryTime(entryTime);
     const now = new Date();
-    const diffMs = now.getTime() - entry.getTime();
+    
+    // Calcular duración en milisegundos
+    let diffMs = now.getTime() - entry.getTime();
+    
+    // Asegurar que la duración no sea negativa (manejar problemas de zona horaria)
+    if (diffMs < 0) {
+      // Si la duración es negativa, probablemente hay un problema de zona horaria
+      // Intentar ajustar por diferencias de zona horaria comunes
+      const timezoneOffset = now.getTimezoneOffset() * 60 * 1000; // convertir a milisegundos
+      diffMs = now.getTime() - entry.getTime() + timezoneOffset;
+      
+      // Si aún es negativa, establecer en 0
+      if (diffMs < 0) {
+        diffMs = 0;
+      }
+    }
+    
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
