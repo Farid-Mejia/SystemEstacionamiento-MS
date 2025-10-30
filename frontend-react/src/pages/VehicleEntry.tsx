@@ -106,10 +106,26 @@ export function VehicleEntry() {
       console.log('📊 DEBUG: Cargando sesiones activas...');
       const response = await parkingService.getAllParkingSessions();
       if (response.success && response.data) {
-        // Filtrar solo las sesiones activas
+        console.log('📊 DEBUG: Total de sesiones obtenidas de la API:', response.data.length);
+        
+        // Mostrar algunos ejemplos de status para debug
+        const statusExamples = response.data.slice(0, 3).map(session => ({
+          id: session.id,
+          status: session.status,
+          visitorId: session.visitorId,
+          licensePlate: session.licensePlate
+        }));
+        console.log('📊 DEBUG: Ejemplos de status de sesiones:', statusExamples);
+        
+        // Filtrar solo las sesiones activas - CORREGIDO: usar 'active' en minúsculas
         const activeSessions = response.data.filter(session => session.status === 'active');
         setActiveSessions(activeSessions);
-        console.log('📊 DEBUG: Sesiones activas cargadas exitosamente:', activeSessions.length);
+        console.log('📊 DEBUG: Sesiones activas filtradas exitosamente:', activeSessions.length);
+        
+        // Mostrar detalles de sesiones activas para debug
+        if (activeSessions.length > 0) {
+          console.log('📊 DEBUG: Primeras sesiones activas:', activeSessions.slice(0, 3));
+        }
       }
     } catch (error) {
       console.error('❌ DEBUG: Error al cargar sesiones activas:', error);
@@ -183,9 +199,16 @@ export function VehicleEntry() {
 
         // PASO 3: Verificar si el visitante tiene sesiones activas usando datos locales
         console.log('🔍 Verificando sesiones activas para visitante ID:', visitor.id);
-        const visitorActiveSessions = activeSessions.filter(session => 
-          session.visitorId === visitor.id && session.status === 'ACTIVE'
-        );
+        console.log('🔍 Total de sesiones activas disponibles:', activeSessions.length);
+        console.log('🔍 Sesiones activas completas:', activeSessions);
+        
+        const visitorActiveSessions = activeSessions.filter(session => {
+          console.log(`🔍 Comparando: session.visitorId=${session.visitorId} con visitor.id=${visitor.id}, session.status='${session.status}'`);
+          return session.visitorId === visitor.id && session.status === 'active';
+        });
+
+        console.log(`📊 Sesiones activas encontradas para visitante ${visitor.id}:`, visitorActiveSessions.length);
+        console.log('📋 Detalles de sesiones activas del visitante:', visitorActiveSessions);
 
         if (visitorActiveSessions.length > 0) {
           // El visitante ya tiene vehículos estacionados
@@ -258,7 +281,7 @@ export function VehicleEntry() {
     // PASO 1: Verificar si la placa ya está en uso usando datos locales
     console.log('🔍 Verificando placa en sesiones activas locales:', formData.licensePlate);
     const existingSession = activeSessions.find(session => 
-      session.licensePlate === formData.licensePlate && session.status === 'ACTIVE'
+      session.licensePlate === formData.licensePlate && session.status === 'active'
     );
 
     if (existingSession) {
