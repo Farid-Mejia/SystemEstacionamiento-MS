@@ -416,8 +416,46 @@ export function Dashboard() {
                   </thead>
                   <tbody>
                     {activeSessions.slice(0, 6).map((session) => {
-                      const entryTime = new Date(session.entryTime)
-                      const duration = Math.floor((Date.now() - entryTime.getTime()) / (1000 * 60))
+                      // Función para parsear fecha de manera robusta
+                      const parseEntryTime = (timeStr: string): Date => {
+                        // Intentar diferentes formatos de fecha
+                        let parsedDate = new Date(timeStr)
+                        
+                        // Si la fecha no es válida, intentar otros formatos
+                        if (isNaN(parsedDate.getTime())) {
+                          // Intentar formato ISO con zona horaria
+                          parsedDate = new Date(timeStr + 'Z')
+                          
+                          if (isNaN(parsedDate.getTime())) {
+                            // Si aún no es válida, usar fecha actual como fallback
+                            console.warn('Could not parse entryTime:', timeStr, 'Using current time as fallback')
+                            parsedDate = new Date()
+                          }
+                        }
+                        
+                        return parsedDate
+                      }
+                      
+                      // Parsear la fecha de entrada
+                      const entryTime = parseEntryTime(session.entryTime)
+                      const currentTime = new Date()
+                      
+                      // Calcular duración en minutos
+                      let duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60))
+                      
+                      // Asegurar que la duración no sea negativa (manejar problemas de zona horaria)
+                      if (duration < 0) {
+                        // Si la duración es negativa, probablemente hay un problema de zona horaria
+                        // Intentar ajustar por diferencias de zona horaria comunes
+                        const timezoneOffset = currentTime.getTimezoneOffset() // en minutos
+                        duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60)) + timezoneOffset
+                        
+                        // Si aún es negativa, establecer en 0
+                        if (duration < 0) {
+                          duration = 0
+                        }
+                      }
+                      
                       const hours = Math.floor(duration / 60)
                       const minutes = duration % 60
                       const visitorInfo = getVisitorInfo(session.visitorId)
