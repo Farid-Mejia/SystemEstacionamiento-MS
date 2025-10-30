@@ -113,7 +113,18 @@ public class ParkingSessionService {
         session.setDurationSeconds(durationSeconds);
         session.setStatus(ParkingSession.SessionStatus.completed);
 
-        return parkingSessionRepository.save(session);
+        // Guardar la sesión actualizada
+        ParkingSession savedSession = parkingSessionRepository.save(session);
+        
+        // Actualizar el estado del espacio de estacionamiento a available
+        try {
+            updateParkingSpaceStatus(session.getParkingSpaceId(), "available");
+        } catch (Exception e) {
+            // Log del error pero no fallar la transacción principal
+            System.err.println("Error al actualizar el estado del espacio de estacionamiento: " + e.getMessage());
+        }
+
+        return savedSession;
     }
 
     // Buscar sesiones activas por placa

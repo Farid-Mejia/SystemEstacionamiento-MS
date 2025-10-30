@@ -32,7 +32,7 @@ enum ValidationStep {
 }
 
 export function VehicleEntry() {
-  const { spaces, selectedSpace, setSpaces, setSelectedSpace, updateSpaceStatus, addSession, getAvailableSpaces, getAvailableDisabledSpaces, validateSpaceAssignment } = useParkingStore();
+  const { spaces, selectedSpace, setSpaces, setSelectedSpace, addSession, getAvailableSpaces, getAvailableDisabledSpaces, validateSpaceAssignment } = useParkingStore();
 
   const [formData, setFormData] = useState<FormData>({
     userDni: '',
@@ -297,8 +297,6 @@ export function VehicleEntry() {
       const response = await parkingService.vehicleEntry(entryData);
 
       if (response.success) {
-        updateSpaceStatus(selectedSpace, 'occupied');
-
         if (response.data) {
           addSession(response.data);
         }
