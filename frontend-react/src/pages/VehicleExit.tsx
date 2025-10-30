@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Search, Clock, User, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { Vehicle, ParkingSession, Visitor } from '@/types';
+import { Vehicle, ParkingSession, Visitor, ParkingSpace } from '@/types';
 
 type SearchType = 'dni' | 'plate';
 
@@ -25,6 +25,7 @@ export function VehicleExit() {
   const [activeSession, setActiveSession] = useState<ParkingSession | null>(null);
   const [visitorInfo, setVisitorInfo] = useState<Visitor | null>(null);
   const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [parkingSpaces, setParkingSpaces] = useState<ParkingSpace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -33,7 +34,7 @@ export function VehicleExit() {
   }, []);
 
   const loadInitialData = async () => {
-    await Promise.all([loadSessions(), loadVisitors()]);
+    await Promise.all([loadSessions(), loadVisitors(), loadParkingSpaces()]);
   };
 
   const loadSessions = async () => {
@@ -73,6 +74,22 @@ export function VehicleExit() {
     }
   };
 
+  const loadParkingSpaces = async () => {
+    try {
+      console.log('🅿️ DEBUG: Cargando espacios de estacionamiento...');
+      const response = await parkingService.getParkingSpaces();
+      console.log('🅿️ DEBUG: Respuesta de espacios:', response);
+      if (response.success && response.data) {
+        setParkingSpaces(response.data);
+        console.log('🅿️ DEBUG: Espacios cargados exitosamente:', response.data.length);
+      } else {
+        console.log('❌ DEBUG: Error en respuesta de espacios:', response);
+      }
+    } catch (error) {
+      console.log('❌ DEBUG: Error al cargar espacios:', error);
+    }
+  };
+
   const validateDni = (dni: string): boolean => {
     return /^\d{8}$/.test(dni);
   };
@@ -86,6 +103,28 @@ export function VehicleExit() {
     setSelectedVehicle(null);
     setActiveSession(null);
     setVisitorInfo(null);
+  };
+
+  // Funciones helper para cruzar datos
+  const getVisitorBySession = (session: ParkingSession): Visitor | null => {
+    return visitors.find(visitor => visitor.id === session.visitorId) || null;
+  };
+
+  const getParkingSpaceBySession = (session: ParkingSession): ParkingSpace | null => {
+    return parkingSpaces.find(space => space.id === session.parkingSpaceId) || null;
+  };
+
+  const getSessionDisplayInfo = (session: ParkingSession) => {
+    const visitor = getVisitorBySession(session);
+    const space = getParkingSpaceBySession(session);
+    
+    return {
+      visitor,
+      space,
+      spaceNumber: space?.spaceNumber || session.parkingSpaceId,
+      visitorName: visitor ? `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}` : 'Visitante no encontrado',
+      visitorDni: visitor?.dni || 'DNI no disponible'
+    };
   };
 
   const searchVehicles = async () => {
@@ -114,32 +153,69 @@ export function VehicleExit() {
 
     try {
       if (searchType === 'dni') {
-        // Buscar por DNI - puede retornar múltiples vehículos
-        const vehiclesResponse = await parkingService.getVehicleByDni(searchValue);
+        console.log('🔍 DEBUG: Buscando DNI:', searchValue);
+        console.log('🔍 DEBUG: Total visitantes cargados:', visitors.length);
+        console.log('🔍 DEBUG: Total sesiones cargadas:', sessions.length);
 
-        if (vehiclesResponse.success && vehiclesResponse.data && vehiclesResponse.data.length > 0) {
-          // Filtrar solo vehículos con sesiones activas
-          const vehiclesWithActiveSessions = vehiclesResponse.data.filter((vehicle) => {
-            return sessions.some((session) => session.licensePlate === vehicle.licensePlate && session.status === 'active');
-          });
+        // 1. Buscar visitante por DNI en el array local
+        let visitor = visitors.find(v => v.dni === searchValue);
+        console.log('🔍 DEBUG: Visitante encontrado localmente:', visitor);
 
-          if (vehiclesWithActiveSessions.length === 0) {
-            toast.error('Este DNI no tiene vehículos parqueados actualmente');
+        // 2. Si no se encuentra localmente, buscar en API
+        if (!visitor) {
+          console.log('🔄 DEBUG: Visitante no encontrado localmente, buscando en API...');
+          try {
+            const visitorResponse = await visitorService.getVisitorByDni(searchValue);
+            if (visitorResponse.success && visitorResponse.data) {
+              visitor = visitorResponse.data;
+              console.log('✅ DEBUG: Visitante encontrado en API:', visitor);
+            } else {
+              console.log('❌ DEBUG: Visitante no encontrado en API');
+              toast.error('No se encontró un visitante con este DNI');
+              return;
+            }
+          } catch (error) {
+            console.log('❌ DEBUG: Error al buscar visitante en API:', error);
+            toast.error('Error al buscar el visitante');
             return;
           }
-
-          setFoundVehicles(vehiclesWithActiveSessions);
-
-          // Obtener información del visitante
-          const visitorResponse = await parkingService.getVisitorByDni(searchValue);
-          if (visitorResponse.success && visitorResponse.data) {
-            setVisitorInfo(visitorResponse.data);
-          }
-
-          toast.success(`Se encontraron ${vehiclesWithActiveSessions.length} vehículo(s) parqueado(s)`);
-        } else {
-          toast.error('No se encontraron vehículos para este DNI');
         }
+
+        // 3. Buscar sesiones activas por visitorId
+        console.log('🔍 DEBUG: Buscando sesiones activas para visitorId:', visitor.id);
+        const activeSessions = sessions.filter(s => s.visitorId === visitor.id && s.status === 'active');
+        console.log('🔍 DEBUG: Sesiones activas encontradas:', activeSessions);
+
+        if (activeSessions.length === 0) {
+          toast.error('Este visitante no tiene vehículos parqueados actualmente');
+          return;
+        }
+
+        // 4. Construir vehículos para cada sesión activa
+        const constructedVehicles: Vehicle[] = activeSessions.map(session => ({
+          id: 0, // No necesario para el proceso de salida
+          licensePlate: session.licensePlate,
+          ownerDni: visitor.dni,
+          ownerName: `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}`,
+          vehicleType: 'AUTO', // Valor por defecto
+          color: 'N/A', // No disponible en sesión
+          brand: 'N/A', // No disponible en sesión
+          model: 'N/A', // No disponible en sesión
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+        }));
+
+        setFoundVehicles(constructedVehicles);
+        setVisitorInfo(visitor);
+
+        // Si solo hay un vehículo, seleccionarlo automáticamente
+        if (constructedVehicles.length === 1) {
+          setSelectedVehicle(constructedVehicles[0]);
+          setActiveSession(activeSessions[0]);
+        }
+
+        toast.success(`Se encontraron ${constructedVehicles.length} vehículo(s) parqueado(s) para este DNI`);
+        console.log('✅ DEBUG: Búsqueda por DNI completada exitosamente');
       } else {
         // Buscar por placa - usar sesión como fuente de verdad
         console.log('🔍 DEBUG: Buscando placa:', searchValue.toUpperCase());
@@ -544,22 +620,46 @@ export function VehicleExit() {
                   <p className="text-gray-500 text-center py-4">No hay vehículos estacionados</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {activeSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                        onClick={() => selectVehicleFromList(session)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="text-sm">
-                            <p className="font-medium">Espacio {session.parkingSpaceId}</p>
-                            <p className="text-gray-600">Placa: {session.licensePlate}</p>
-                            <p className="text-gray-600">Ingreso: {new Date(session.entryTime).toLocaleString()}</p>
+                    {activeSessions.map((session) => {
+                      const sessionInfo = getSessionDisplayInfo(session);
+                      return (
+                        <div
+                          key={session.id}
+                          className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => selectVehicleFromList(session)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">
+                                  Espacio {sessionInfo.spaceNumber}
+                                </div>
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
+                                  {session.licensePlate}
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <p className="text-gray-500">Visitante:</p>
+                                  <p className="font-medium">{sessionInfo.visitorName}</p>
+                                  <p className="text-gray-600">DNI: {sessionInfo.visitorDni}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500">Ingreso:</p>
+                                  <p className="text-gray-700">{new Date(session.entryTime).toLocaleString()}</p>
+                                  <p className="text-blue-600 font-medium">{calculateDuration(session.entryTime)}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center text-green-600">
+                              <Car className="w-4 h-4" />
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500">{calculateDuration(session.entryTime)}</div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParkingStore } from '@/stores/parkingStore';
 import { parkingService } from '@/services/parkingService';
+import { visitorService } from '@/services/visitorService';
 import { CreateParkingSessionRequest } from '@/types';
 import { Layout } from '@/components/Layout';
 import { ParkingGrid } from '@/components/ParkingGrid';
@@ -12,6 +13,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowRight, Search, Accessibility, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+
+interface ParkingSession {
+  id: number;
+  licensePlate: string;
+  parkingSpaceId: number;
+  visitorId: number;
+  entryTime: string;
+  status: string;
+}
+
+interface Visitor {
+  id: number;
+  dni: string;
+  firstName: string;
+  paternalLastName: string;
+  maternalLastName: string;
+  fullName?: string;
+}
 
 interface FormData {
   userDni: string;
@@ -46,23 +65,71 @@ export function VehicleEntry() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchingUser, setIsSearchingUser] = useState(false);
 
+  // Estados para datos precargados
+  const [activeSessions, setActiveSessions] = useState<ParkingSession[]>([]);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
+
   // Estados para el flujo progresivo
   const [currentStep, setCurrentStep] = useState<ValidationStep>(ValidationStep.DNI);
   const [validatedSteps, setValidatedSteps] = useState<Set<ValidationStep>>(new Set());
   const [plateValidated, setPlateValidated] = useState(false);
 
   useEffect(() => {
-    loadSpaces();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    console.log('🔄 DEBUG: Cargando datos iniciales...');
+    await Promise.all([
+      loadSpaces(),
+      loadActiveSessions(),
+      loadVisitors()
+    ]);
+  };
 
   const loadSpaces = async () => {
     try {
+      console.log('🅿️ DEBUG: Cargando espacios de estacionamiento...');
       const response = await parkingService.getParkingSpaces();
       if (response.success && response.data) {
         setSpaces(response.data);
+        console.log('🅿️ DEBUG: Espacios cargados exitosamente:', response.data.length);
       }
     } catch (error) {
+      console.error('❌ DEBUG: Error al cargar espacios:', error);
       toast.error('Error al cargar los espacios');
+    }
+  };
+
+  const loadActiveSessions = async () => {
+    try {
+      console.log('📊 DEBUG: Cargando sesiones activas...');
+      const response = await parkingService.getAllParkingSessions();
+      if (response.success && response.data) {
+        // Filtrar solo las sesiones activas
+        const activeSessions = response.data.filter(session => session.status === 'active');
+        setActiveSessions(activeSessions);
+        console.log('📊 DEBUG: Sesiones activas cargadas exitosamente:', activeSessions.length);
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Error al cargar sesiones activas:', error);
+      toast.error('Error al cargar las sesiones activas');
+    }
+  };
+
+  const loadVisitors = async () => {
+    try {
+      console.log('👥 DEBUG: Cargando visitantes...');
+      const response = await visitorService.getVisitors();
+      if (response.success && response.data) {
+        // Manejar la estructura de respuesta del microservicio de visitantes
+        const visitorsData = Array.isArray(response.data) ? response.data : (response.data as any).data || [];
+        setVisitors(visitorsData);
+        console.log('👥 DEBUG: Visitantes cargados exitosamente:', visitorsData.length);
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Error al cargar visitantes:', error);
+      toast.error('Error al cargar los visitantes');
     }
   };
 
@@ -90,42 +157,57 @@ export function VehicleEntry() {
     setVisitorSummary(null); // Limpiar resumen anterior
 
     try {
-      // Buscar visitante por DNI usando la API real
-      const visitorResponse = await parkingService.getVisitorByDni(formData.userDni);
+      let visitor: Visitor | null = null;
 
-      if (visitorResponse.success && visitorResponse.data) {
-        const visitor = visitorResponse.data;
+      // PASO 1: Buscar primero en los datos locales de visitantes
+      console.log('🔍 Buscando visitante por DNI en datos locales:', formData.userDni);
+      const localVisitor = visitors.find(v => v.dni === formData.userDni);
+      
+      if (localVisitor) {
+        console.log('✅ Visitante encontrado en datos locales:', localVisitor);
+        visitor = localVisitor;
+      } else {
+        // PASO 2: Si no se encuentra localmente, buscar en la API
+        console.log('🌐 Visitante no encontrado localmente, buscando en API...');
+        const visitorResponse = await parkingService.getVisitorByDni(formData.userDni);
+        
+        if (visitorResponse.success && visitorResponse.data) {
+          console.log('✅ Visitante encontrado en API:', visitorResponse.data);
+          visitor = visitorResponse.data;
+        }
+      }
 
+      if (visitor) {
         // Construir el nombre completo del visitante
         const fullName = visitor.fullName || `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}`.trim();
 
-        // Verificar si el visitante tiene sesiones activas
-        const sessionsResponse = await parkingService.getSessionsByVisitorId(visitor.id);
+        // PASO 3: Verificar si el visitante tiene sesiones activas usando datos locales
+        console.log('🔍 Verificando sesiones activas para visitante ID:', visitor.id);
+        const visitorActiveSessions = activeSessions.filter(session => 
+          session.visitorId === visitor.id && session.status === 'ACTIVE'
+        );
 
-        if (sessionsResponse.success && sessionsResponse.data) {
-          // Filtrar solo las sesiones activas
-          const activeSessions = sessionsResponse.data.filter((session: any) => session.status === 'ACTIVE');
+        if (visitorActiveSessions.length > 0) {
+          // El visitante ya tiene vehículos estacionados
+          console.log('⚠️ Visitante tiene sesiones activas:', visitorActiveSessions);
+          const activeSession = visitorActiveSessions[0];
+          const summary = {
+            dni: visitor.dni,
+            fullName: fullName,
+            status: 'CON VEHÍCULO ESTACIONADO',
+            licensePlate: activeSession.licensePlate || 'N/A',
+            parkingSpace: activeSession.parkingSpaceId || 'N/A',
+            entryTime: activeSession.entryTime || 'N/A',
+          };
 
-          if (activeSessions.length > 0) {
-            // El visitante ya tiene vehículos estacionados
-            const activeSession = activeSessions[0];
-            const summary = {
-              dni: visitor.dni,
-              fullName: fullName,
-              status: 'CON VEHÍCULO ESTACIONADO',
-              licensePlate: activeSession.licensePlate || 'N/A',
-              parkingSpace: activeSession.parkingSpaceId || 'N/A',
-              entryTime: activeSession.entryTime || 'N/A',
-            };
-
-            setVisitorSummary(summary);
-            toast.error('Este visitante ya tiene un vehículo estacionado');
-            setErrors((prev) => ({ ...prev, userDni: 'Este DNI ya tiene un vehículo parqueado' }));
-            return;
-          }
+          setVisitorSummary(summary);
+          toast.error('Este visitante ya tiene un vehículo estacionado');
+          setErrors((prev) => ({ ...prev, userDni: 'Este DNI ya tiene un vehículo parqueado' }));
+          return;
         }
 
         // El visitante existe pero no tiene sesiones activas
+        console.log('✅ Visitante válido sin sesiones activas');
         const userInfo = {
           dni: visitor.dni,
           name: fullName,
@@ -148,11 +230,12 @@ export function VehicleEntry() {
         setErrors((prev) => ({ ...prev, userDni: undefined }));
         toast.success('Visitante encontrado - Ahora ingrese la placa del vehículo');
       } else {
+        console.log('❌ Visitante no encontrado');
         toast.error('Visitante no encontrado con el DNI proporcionado');
         setErrors((prev) => ({ ...prev, userDni: 'Visitante no encontrado' }));
       }
     } catch (error) {
-      console.error('Error al buscar el visitante:', error);
+      console.error('❌ Error al buscar el visitante:', error);
       toast.error('Error al buscar el visitante. Verifique la conexión.');
       setErrors((prev) => ({ ...prev, userDni: 'Error al buscar el visitante' }));
     } finally {
@@ -172,18 +255,34 @@ export function VehicleEntry() {
       return;
     }
 
-    // Verificar si la placa ya está en uso
+    // PASO 1: Verificar si la placa ya está en uso usando datos locales
+    console.log('🔍 Verificando placa en sesiones activas locales:', formData.licensePlate);
+    const existingSession = activeSessions.find(session => 
+      session.licensePlate === formData.licensePlate && session.status === 'ACTIVE'
+    );
+
+    if (existingSession) {
+      console.log('⚠️ Placa encontrada en sesiones activas locales:', existingSession);
+      toast.error('Esta placa ya tiene un vehículo registrado en el estacionamiento');
+      setErrors((prev) => ({ ...prev, licensePlate: 'Esta placa ya está registrada' }));
+      return;
+    }
+
+    // PASO 2: Si no se encuentra localmente, verificar en la API como fallback
     try {
+      console.log('🌐 Placa no encontrada localmente, verificando en API...');
       const plateCheckResponse = await parkingService.checkPlateInUse(formData.licensePlate);
       if (plateCheckResponse.success && plateCheckResponse.data) {
+        console.log('⚠️ Placa encontrada en API como registrada');
         toast.error('Esta placa ya tiene un vehículo registrado en el estacionamiento');
         setErrors((prev) => ({ ...prev, licensePlate: 'Esta placa ya está registrada' }));
         return;
       }
     } catch (error) {
-      console.error('Error checking plate:', error);
+      console.error('❌ Error checking plate:', error);
     }
 
+    console.log('✅ Placa validada correctamente');
     setPlateValidated(true);
     setValidatedSteps((prev) => new Set([...prev, ValidationStep.PLATE]));
     setCurrentStep(ValidationStep.REGISTRATION);
