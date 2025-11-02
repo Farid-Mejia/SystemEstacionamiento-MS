@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import parkingRoutes from './routes/parking.js';
+import reportRoutes from './routes/reports.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/parking', parkingRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
@@ -32,6 +34,13 @@ app.get('/', (req, res) => {
         spaces: '/api/parking/spaces',
         entry: '/api/parking/entry',
         exit: '/api/parking/exit'
+      },
+      reports: {
+        completedSessions: '/api/reports/parking-sessions/completed',
+        users: '/api/reports/users',
+        vehicles: '/api/reports/vehicles',
+        parkingSpaces: '/api/reports/parking-spaces',
+        stats: '/api/reports/stats'
       }
     }
   });
