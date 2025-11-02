@@ -1,0 +1,196 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: parksystem-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: dv_parksystem
+      MYSQL_USER: parksystem_user
+      MYSQL_PASSWORD: parksystem123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Servidor Eureka (Service Discovery)
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: parksystem-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Microservicio de Usuarios/Autenticación
+  ms-users:
+    build:
+      context: ./ms-users
+      dockerfile: Dockerfile
+    container_name: parksystem-users
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dv_parksystem?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=parksystem_user
+      - SPRING_DATASOURCE_PASSWORD=parksystem123
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Microservicio de Sesiones de Estacionamiento
+  ms-parking-sessions:
+    build:
+      context: ./ms-parking-sessions
+      dockerfile: Dockerfile
+    container_name: parksystem-sessions
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dv_parksystem?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=parksystem_user
+      - SPRING_DATASOURCE_PASSWORD=parksystem123
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      ms-users:
+        condition: service_healthy
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Microservicio de Espacios de Estacionamiento
+  ms-parking-spaces:
+    build:
+      context: ./ms-parking-spaces
+      dockerfile: Dockerfile
+    container_name: parksystem-spaces
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dv_parksystem?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=parksystem_user
+      - SPRING_DATASOURCE_PASSWORD=parksystem123
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      ms-users:
+        condition: service_healthy
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Microservicio de Visitantes
+  ms-visitors:
+    build:
+      context: ./ms-visitors
+      dockerfile: Dockerfile
+    container_name: parksystem-visitors
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/dv_parksystem?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=parksystem_user
+      - SPRING_DATASOURCE_PASSWORD=parksystem123
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      ms-users:
+        condition: service_healthy
+    networks:
+      - parksystem-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Frontend React
+  frontend-react:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile
+    container_name: parksystem-frontend
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+      - REACT_APP_USERS_SERVICE_URL=http://localhost:8081
+      - REACT_APP_SESSIONS_SERVICE_URL=http://localhost:8082
+      - REACT_APP_SPACES_SERVICE_URL=http://localhost:8083
+      - REACT_APP_VISITORS_SERVICE_URL=http://localhost:8084
+    depends_on:
+      - ms-users
+      - ms-parking-sessions
+      - ms-parking-spaces
+      - ms-visitors
+    networks:
+      - parksystem-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  parksystem-network:
+    driver: bridge

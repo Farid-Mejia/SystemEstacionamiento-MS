@@ -1,0 +1,48 @@
+# Multi-stage build para optimizar el tamaño de la imagen
+FROM openjdk:21-jdk-slim as builder
+
+# Instalar Maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de configuración de Maven
+COPY pom.xml .
+
+# Descargar dependencias (se cachea si no cambia pom.xml)
+RUN mvn dependency:go-offline -B
+
+# Copiar código fuente
+COPY src src
+
+# Compilar la aplicación
+RUN mvn clean package -DskipTests
+
+# Etapa de runtime
+FROM openjdk:21-jre-slim
+
+# Crear usuario no-root para seguridad
+RUN groupadd -r spring && useradd -r -g spring spring
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar el JAR compilado desde la etapa builder
+COPY --from=builder /app/target/*.jar app.jar
+
+# Cambiar propietario del archivo
+RUN chown spring:spring app.jar
+
+# Cambiar a usuario no-root
+USER spring
+
+# Exponer puerto del microservicio
+EXPOSE 8082
+
+# Variables de entorno por defecto
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+ENV SPRING_PROFILES_ACTIVE=docker
+
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

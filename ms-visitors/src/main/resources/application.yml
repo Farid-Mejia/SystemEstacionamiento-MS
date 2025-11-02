@@ -5,7 +5,19 @@ spring:
     compatibility-verifier:
       enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/db_visitors
+    url: jdbc:mysql://localhost:3306/dv_parksystem
+    username: root
+    password: Lifeinmono77
+  profiles:
+    active: local
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:mysql://parksystem-mysql:3306/dv_parksystem
     username: root
     password: Lifeinmono77
   jpa:
