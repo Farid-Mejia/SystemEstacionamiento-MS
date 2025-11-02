@@ -82,7 +82,7 @@ export const parkingService = {
   async getParkingSpaces(floor?: string, status?: string, isDisabledSpace?: boolean): Promise<ApiResponse<ParkingSpace[]>> {
     const params = new URLSearchParams();
     if (floor && floor !== 'ALL') params.append('floor', floor);
-    if (status && status !== 'ALL') params.append('status', status.toUpperCase());
+    if (status && status !== 'ALL') params.append('status', status);
     if (isDisabledSpace !== undefined && isDisabledSpace !== null) {
       params.append('isDisabledSpace', isDisabledSpace.toString());
     }
@@ -135,10 +135,9 @@ export const parkingService = {
 
   // Crear nuevo espacio de estacionamiento
   async createParkingSpace(spaceData: CreateParkingSpaceRequest): Promise<ApiResponse<ParkingSpace>> {
-    // Convertir status a mayúsculas para la API
+    // No convertir status - mantener en minúsculas como espera el backend
     const apiData = {
       ...spaceData,
-      status: spaceData.status?.toUpperCase(),
     };
 
     const response = await apiRequest<ParkingSpace>('/api/parking-spaces', {
@@ -159,10 +158,9 @@ export const parkingService = {
 
   // Actualizar espacio de estacionamiento
   async updateParkingSpace(id: number, spaceData: UpdateParkingSpaceRequest): Promise<ApiResponse<ParkingSpace>> {
-    // Convertir status a mayúsculas para la API
+    // No convertir status - mantener en minúsculas como espera el backend
     const apiData = {
       ...spaceData,
-      status: spaceData.status?.toUpperCase(),
     };
 
     const response = await apiRequest<ParkingSpace>(`/api/parking-spaces/${id}`, {
