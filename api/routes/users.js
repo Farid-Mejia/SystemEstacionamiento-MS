@@ -1,6 +1,7 @@
 import express from 'express';
 import { users, vehicles } from '../data/mockData.js';
 import { verifyToken } from './auth.js';
+import { requireAdmin, requireAdminOrOperator } from '../middleware/roleAuth.js';
 
 const router = express.Router();
 
@@ -53,15 +54,8 @@ router.get('/dni/:dni', verifyToken, (req, res) => {
 });
 
 // GET /api/users - Obtener todos los usuarios (solo para admin)
-router.get('/', verifyToken, (req, res) => {
+router.get('/', requireAdmin, (req, res) => {
   try {
-    // Verificar si es admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Acceso denegado. Solo administradores pueden ver todos los usuarios'
-      });
-    }
 
     // Obtener todos los usuarios con sus vehículos
     const usersWithVehicles = users.map(user => {
@@ -89,7 +83,7 @@ router.get('/', verifyToken, (req, res) => {
 });
 
 // GET /api/users/:id - Obtener usuario por ID
-router.get('/:id', verifyToken, (req, res) => {
+router.get('/:id', requireAdmin, (req, res) => {
   try {
     const { id } = req.params;
     const userId = parseInt(id);

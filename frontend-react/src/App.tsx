@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'sonner'
 import { useAuthStore } from '@/stores/authStore'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { RoleProtectedRoute } from '@/components/RoleProtectedRoute'
 import { Login } from '@/pages/Login'
 import { Dashboard } from '@/pages/Dashboard'
 import { VehicleEntry } from '@/pages/VehicleEntry'
@@ -9,6 +10,7 @@ import { VehicleExit } from '@/pages/VehicleExit'
 import { UserManagement } from '@/pages/UserManagement'
 import { ParkingManagement } from '@/pages/ParkingManagement'
 import { VisitorManagement } from '@/pages/VisitorManagement'
+import { Profile } from '@/pages/Profile'
 import Reports from '@/pages/Reports'
 
 function App() {
@@ -50,35 +52,43 @@ function App() {
             } 
           />
           <Route 
-            path="/users" 
+            path="/profile" 
             element={
               <ProtectedRoute>
-                <UserManagement />
+                <Profile />
               </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/users" 
+            element={
+              <RoleProtectedRoute requiredPermission="user-management">
+                <UserManagement />
+              </RoleProtectedRoute>
             } 
           />
           <Route 
             path="/parking" 
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute requiredPermission="parking-management">
                 <ParkingManagement />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             } 
           />
           <Route 
             path="/visitors" 
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute requiredPermission="visitor-management">
                 <VisitorManagement />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             } 
           />
           <Route 
             path="/reports" 
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute requiredPermission="reports">
                 <Reports />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             } 
           />
           <Route 

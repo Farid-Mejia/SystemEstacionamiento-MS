@@ -1,5 +1,6 @@
 import express from 'express';
 import mysql from 'mysql2/promise';
+import { requireAdmin } from '../middleware/roleAuth.js';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ const dbConfig = {
 };
 
 // Endpoint optimizado para obtener sesiones completadas con toda la información necesaria
-router.get('/parking-sessions/completed', async (req, res) => {
+router.get('/parking-sessions/completed', requireAdmin, async (req, res) => {
   let connection;
   try {
     connection = await mysql.createConnection(dbConfig);
@@ -88,7 +89,7 @@ router.get('/parking-sessions/completed', async (req, res) => {
 // Toda la información necesaria ahora se incluye en el endpoint optimizado /parking-sessions/completed
 
 // Endpoint para obtener todas las sesiones (activas y completadas)
-router.get('/parking-sessions/all', (req, res) => {
+router.get('/parking-sessions/all', requireAdmin, (req, res) => {
   try {
     const allSessions = [...parkingSessions, ...completedParkingSessions];
     res.json({
@@ -105,7 +106,7 @@ router.get('/parking-sessions/all', (req, res) => {
 });
 
 // Endpoint para obtener estadísticas de reportes
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireAdmin, async (req, res) => {
   let connection;
   try {
     const { startDate, endDate } = req.query;

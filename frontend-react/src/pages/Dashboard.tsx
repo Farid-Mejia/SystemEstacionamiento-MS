@@ -1,167 +1,149 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useParkingStore } from '@/stores/parkingStore'
-import { parkingService } from '@/services/parkingService'
-import { visitorService } from '@/services/visitorService'
-import { Layout } from '@/components/Layout'
-import { ParkingGrid } from '@/components/ParkingGrid'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Car, 
-  Building, 
-  RefreshCw, 
-  CheckCircle,
-  Settings,
-  AlertTriangle,
-  TrendingUp
-} from 'lucide-react'
-import { toast } from 'sonner'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useParkingStore } from '@/stores/parkingStore';
+import { parkingService } from '@/services/parkingService';
+import { visitorService } from '@/services/visitorService';
+import { Layout } from '@/components/Layout';
+import { ParkingGrid } from '@/components/ParkingGrid';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Car, Building, RefreshCw, CheckCircle, Settings, AlertTriangle, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function Dashboard() {
-  const navigate = useNavigate()
-  const {
-    spaces,
-    sessions,
-    setSpaces,
-    setSessions,
-    getSpacesByFloor,
-    getAvailableSpaces,
-    getOccupiedSpaces,
-  } = useParkingStore()
+  const navigate = useNavigate();
+  const { spaces, sessions, setSpaces, setSessions, getSpacesByFloor, getAvailableSpaces, getOccupiedSpaces } = useParkingStore();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedFloor, setSelectedFloor] = useState<'all' | 'SS' | 'S1'>('all')
-  const [lastLoadTime, setLastLoadTime] = useState<number>(0)
-  const [visitors, setVisitors] = useState<any[]>([])
-  const [parkingSpaces, setParkingSpaces] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedFloor, setSelectedFloor] = useState<'all' | 'SS' | 'S1'>('all');
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0);
+  const [visitors, setVisitors] = useState<any[]>([]);
+  const [parkingSpaces, setParkingSpaces] = useState<any[]>([]);
 
   const loadData = async (force = false) => {
     // Debounce: evitar llamadas si la última fue hace menos de 2 segundos
-    const now = Date.now()
+    const now = Date.now();
     if (!force && now - lastLoadTime < 2000) {
-      return
+      return;
     }
 
     // Evitar múltiples llamadas simultáneas
     if (isLoading && !force) {
-      return
+      return;
     }
 
-    setIsLoading(true)
-    setLastLoadTime(now)
-    
+    setIsLoading(true);
+    setLastLoadTime(now);
+
     try {
       // Cargar espacios de estacionamiento
-      const spacesResponse = await parkingService.getParkingSpaces()
+      const spacesResponse = await parkingService.getParkingSpaces();
       if (spacesResponse.success && spacesResponse.data) {
-        setSpaces(spacesResponse.data)
-        setParkingSpaces(spacesResponse.data)
+        setSpaces(spacesResponse.data);
+        setParkingSpaces(spacesResponse.data);
       }
 
       // Cargar sesiones activas para tener datos completos
-      const sessionsResponse = await parkingService.getSessions()
+      const sessionsResponse = await parkingService.getSessions();
       if (sessionsResponse.success && sessionsResponse.data) {
-        setSessions(sessionsResponse.data)
+        setSessions(sessionsResponse.data);
       }
 
       // Cargar visitantes para mostrar información completa
-      const visitorsResponse = await visitorService.getVisitors()
+      const visitorsResponse = await visitorService.getVisitors();
       if (visitorsResponse.success && visitorsResponse.data) {
         // Manejar estructura anidada de la respuesta de ms-visitors
-        const visitorsData = visitorsResponse.data as any
-        const visitorsArray = Array.isArray(visitorsData.data) ? visitorsData.data : 
-                             Array.isArray(visitorsData) ? visitorsData : []
-        setVisitors(visitorsArray)
+        const visitorsData = visitorsResponse.data as any;
+        const visitorsArray = Array.isArray(visitorsData.data) ? visitorsData.data : Array.isArray(visitorsData) ? visitorsData : [];
+        setVisitors(visitorsArray);
       }
     } catch (error) {
-      console.error('Error al cargar datos:', error)
-      toast.error('Error al cargar los datos')
+      console.error('Error al cargar datos:', error);
+      toast.error('Error al cargar los datos');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleRefresh = () => {
-    loadData(true)
-  }
+    loadData(true);
+  };
 
   useEffect(() => {
     // Carga inicial
-    loadData(true)
-    
+    loadData(true);
+
     // Auto-refresh every 10 seconds (reducido de 5 para menos carga)
-    const interval = setInterval(() => loadData(), 10000)
-    
+    const interval = setInterval(() => loadData(), 10000);
+
     // Manejar cambios de visibilidad y foco
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        loadData()
+        loadData();
       }
-    }
+    };
 
     const handleFocus = () => {
-      loadData()
-    }
+      loadData();
+    };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
-      clearInterval(interval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
-    }
-  }, [])
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // Helper functions para obtener información cruzada
   const getVisitorInfo = (visitorId: number) => {
     if (!visitors || !Array.isArray(visitors)) {
-      return { fullName: 'N/A', dni: 'N/A' }
+      return { fullName: '', dni: '' };
     }
-    
-    const visitor = visitors.find(v => v.id === visitorId)
-    
+
+    const visitor = visitors.find((v) => v.id === visitorId);
+
     if (!visitor) {
-      return { fullName: 'N/A', dni: 'N/A' }
+      return { fullName: '', dni: '' };
     }
-    
-    const fullName = visitor.fullName || 
-      `${visitor.firstName || ''} ${visitor.paternalLastName || ''} ${visitor.maternalLastName || ''}`.trim()
-    
+
+    const fullName = visitor.fullName || `${visitor.firstName || ''} ${visitor.paternalLastName || ''} ${visitor.maternalLastName || ''}`.trim();
+
     return {
-      fullName: fullName || 'N/A',
-      dni: visitor.dni || 'N/A'
-    }
-  }
+      fullName: fullName || '',
+      dni: visitor.dni || '',
+    };
+  };
 
   const getSpaceNumber = (spaceId: number) => {
     if (!parkingSpaces || !Array.isArray(parkingSpaces)) {
-      return spaceId // Fallback al ID si no hay datos
+      return spaceId; // Fallback al ID si no hay datos
     }
-    
-    const space = parkingSpaces.find(s => s.id === spaceId)
-    return space ? space.spaceNumber : spaceId // Fallback al ID si no se encuentra
-  }
+
+    const space = parkingSpaces.find((s) => s.id === spaceId);
+    return space ? space.spaceNumber : spaceId; // Fallback al ID si no se encuentra
+  };
 
   // Calculated values for the dashboard
-  const availableSpaces = getAvailableSpaces()
-  const occupiedSpaces = getOccupiedSpaces()
-  const activeSessions = sessions.filter(session => session.status === 'active')
-  const maintenanceSpaces = spaces.filter(space => space.status === 'maintenance')
+  const availableSpaces = getAvailableSpaces();
+  const occupiedSpaces = getOccupiedSpaces();
+  const activeSessions = sessions.filter((session) => session.status === 'active');
+  const maintenanceSpaces = spaces.filter((space) => space.status === 'maintenance');
 
   // Calculate occupancy rate
-  const occupancyRate = spaces.length > 0 ? Math.round((occupiedSpaces.length / spaces.length) * 100) : 0
+  const occupancyRate = spaces.length > 0 ? Math.round((occupiedSpaces.length / spaces.length) * 100) : 0;
 
   const getOccupancyColor = () => {
-    if (occupancyRate > 90) return { text: 'text-red-600', bg: 'bg-red-100', bar: 'bg-red-400' }
-    if (occupancyRate > 75) return { text: 'text-yellow-600', bg: 'bg-yellow-100', bar: 'bg-yellow-400' }
-    if (occupancyRate > 50) return { text: 'text-blue-600', bg: 'bg-blue-100', bar: 'bg-blue-400' }
-    return { text: 'text-green-600', bg: 'bg-green-100', bar: 'bg-green-400' }
-  }
+    if (occupancyRate > 90) return { text: 'text-red-600', bg: 'bg-red-100', bar: 'bg-red-400' };
+    if (occupancyRate > 75) return { text: 'text-yellow-600', bg: 'bg-yellow-100', bar: 'bg-yellow-400' };
+    if (occupancyRate > 50) return { text: 'text-blue-600', bg: 'bg-blue-100', bar: 'bg-blue-400' };
+    return { text: 'text-green-600', bg: 'bg-green-100', bar: 'bg-green-400' };
+  };
 
-  const occupancyColors = getOccupancyColor()
+  const occupancyColors = getOccupancyColor();
 
   const mainStats = [
     {
@@ -201,15 +183,15 @@ export function Dashboard() {
       bgColor: occupancyColors.bg,
       isOccupancy: true,
     },
-  ]
+  ];
 
   const getSystemStatus = () => {
-    if (occupancyRate > 90) return { status: 'critical', message: 'Capacidad crítica', color: 'text-red-600' }
-    if (occupancyRate > 75) return { status: 'warning', message: 'Capacidad alta', color: 'text-yellow-600' }
-    return { status: 'normal', message: '', color: 'text-green-600' }
-  }
+    if (occupancyRate > 90) return { status: 'critical', message: 'Capacidad crítica', color: 'text-red-600' };
+    if (occupancyRate > 75) return { status: 'warning', message: 'Capacidad alta', color: 'text-yellow-600' };
+    return { status: 'normal', message: '', color: 'text-green-600' };
+  };
 
-  const systemStatus = getSystemStatus()
+  const systemStatus = getSystemStatus();
 
   return (
     <Layout title="Dashboard">
@@ -217,21 +199,12 @@ export function Dashboard() {
         {/* Header with Quick Actions */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Panel de Control
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Gestión del sistema de estacionamiento
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">Panel de Control</h1>
+            <p className="text-gray-600 text-sm">Gestión del sistema de estacionamiento</p>
           </div>
-          
+
           <div className="flex gap-3">
-            <Button
-              onClick={handleRefresh}
-              disabled={isLoading}
-              variant="outline"
-              size="sm"
-            >
+            <Button onClick={handleRefresh} disabled={isLoading} variant="outline" size="sm">
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -244,12 +217,8 @@ export function Dashboard() {
               <div className="flex items-center gap-3">
                 <AlertTriangle className={`w-5 h-5 ${systemStatus.color}`} />
                 <div>
-                  <p className={`font-semibold ${systemStatus.color}`}>
-                    {systemStatus.message}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Actualizado: {new Date().toLocaleTimeString()}
-                  </p>
+                  <p className={`font-semibold ${systemStatus.color}`}>{systemStatus.message}</p>
+                  <p className="text-sm text-gray-600">Actualizado: {new Date().toLocaleTimeString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -259,26 +228,19 @@ export function Dashboard() {
         {/* Main Statistics - Ahora incluye el % de ocupación */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {mainStats.map((stat) => {
-            const Icon = stat.icon
+            const Icon = stat.icon;
             return (
               <Card key={stat.title} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-gray-600 mb-1">
-                        {stat.title}
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stat.value}
-                      </p>
+                      <p className="text-xs font-medium text-gray-600 mb-1">{stat.title}</p>
+                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                       {/* Barra sutil solo para el % de ocupación */}
                       {stat.isOccupancy && (
                         <div className="mt-2">
                           <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${occupancyColors.bar}`}
-                              style={{ width: `${occupancyRate}%` }}
-                            />
+                            <div className={`h-full transition-all duration-300 ${occupancyColors.bar}`} style={{ width: `${occupancyRate}%` }} />
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             {occupiedSpaces.length}/{spaces.length}
@@ -292,7 +254,7 @@ export function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
 
@@ -304,27 +266,15 @@ export function Dashboard() {
                 <Building className="w-5 h-5 text-blue-600" />
                 Mapa de Estacionamiento
               </CardTitle>
-              
+
               <div className="flex gap-2">
-                <Button
-                  variant={selectedFloor === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedFloor('all')}
-                >
+                <Button variant={selectedFloor === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedFloor('all')}>
                   Todos
                 </Button>
-                <Button
-                  variant={selectedFloor === 'SS' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedFloor('SS')}
-                >
+                <Button variant={selectedFloor === 'SS' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedFloor('SS')}>
                   Piso SS
                 </Button>
-                <Button
-                  variant={selectedFloor === 'S1' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedFloor('S1')}
-                >
+                <Button variant={selectedFloor === 'S1' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedFloor('S1')}>
                   Sótano S1
                 </Button>
               </div>
@@ -352,26 +302,18 @@ export function Dashboard() {
                 </div>
               </div>
 
-
-
               {/* Parking Grids */}
               {(selectedFloor === 'all' || selectedFloor === 'SS') && (
                 <div>
                   <h3 className="text-base font-semibold mb-2">Primer Piso (SS)</h3>
-                  <ParkingGrid
-                    spaces={getSpacesByFloor('SS')}
-                    floor="SS"
-                  />
+                  <ParkingGrid spaces={getSpacesByFloor('SS')} floor="SS" />
                 </div>
               )}
 
               {(selectedFloor === 'all' || selectedFloor === 'S1') && (
                 <div>
                   <h3 className="text-base font-semibold mb-2">Sótano (S1)</h3>
-                  <ParkingGrid
-                    spaces={getSpacesByFloor('S1')}
-                    floor="S1"
-                  />
+                  <ParkingGrid spaces={getSpacesByFloor('S1')} floor="S1" />
                 </div>
               )}
             </div>
@@ -397,21 +339,11 @@ export function Dashboard() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                        Placa
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                        Visitante
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                        Espacio
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                        Tiempo Estacionado
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">
-                        Estado
-                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Placa</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Visitante</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Espacio</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Tiempo Estacionado</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -419,54 +351,52 @@ export function Dashboard() {
                       // Función para parsear fecha de manera robusta
                       const parseEntryTime = (timeStr: string): Date => {
                         // Intentar diferentes formatos de fecha
-                        let parsedDate = new Date(timeStr)
-                        
+                        let parsedDate = new Date(timeStr);
+
                         // Si la fecha no es válida, intentar otros formatos
                         if (isNaN(parsedDate.getTime())) {
                           // Intentar formato ISO con zona horaria
-                          parsedDate = new Date(timeStr + 'Z')
-                          
+                          parsedDate = new Date(timeStr + 'Z');
+
                           if (isNaN(parsedDate.getTime())) {
                             // Si aún no es válida, usar fecha actual como fallback
-                            console.warn('Could not parse entryTime:', timeStr, 'Using current time as fallback')
-                            parsedDate = new Date()
+                            console.warn('Could not parse entryTime:', timeStr, 'Using current time as fallback');
+                            parsedDate = new Date();
                           }
                         }
-                        
-                        return parsedDate
-                      }
-                      
+
+                        return parsedDate;
+                      };
+
                       // Parsear la fecha de entrada
-                      const entryTime = parseEntryTime(session.entryTime)
-                      const currentTime = new Date()
-                      
+                      const entryTime = parseEntryTime(session.entryTime);
+                      const currentTime = new Date();
+
                       // Calcular duración en minutos
-                      let duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60))
-                      
+                      let duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60));
+
                       // Asegurar que la duración no sea negativa (manejar problemas de zona horaria)
                       if (duration < 0) {
                         // Si la duración es negativa, probablemente hay un problema de zona horaria
                         // Intentar ajustar por diferencias de zona horaria comunes
-                        const timezoneOffset = currentTime.getTimezoneOffset() // en minutos
-                        duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60)) + timezoneOffset
-                        
+                        const timezoneOffset = currentTime.getTimezoneOffset(); // en minutos
+                        duration = Math.floor((currentTime.getTime() - entryTime.getTime()) / (1000 * 60)) + timezoneOffset;
+
                         // Si aún es negativa, establecer en 0
                         if (duration < 0) {
-                          duration = 0
+                          duration = 0;
                         }
                       }
-                      
-                      const hours = Math.floor(duration / 60)
-                      const minutes = duration % 60
-                      const visitorInfo = getVisitorInfo(session.visitorId)
-                      const spaceNumber = getSpaceNumber(session.parkingSpaceId)
-                      
+
+                      const hours = Math.floor(duration / 60);
+                      const minutes = duration % 60;
+                      const visitorInfo = getVisitorInfo(session.visitorId);
+                      const spaceNumber = getSpaceNumber(session.parkingSpaceId);
+
                       return (
                         <tr key={session.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                           <td className="py-3 px-4">
-                            <span className="font-medium text-gray-900">
-                              {session.licensePlate}
-                            </span>
+                            <span className="font-medium text-gray-900">{session.licensePlate}</span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="text-gray-700">
@@ -475,39 +405,25 @@ export function Dashboard() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-gray-700 font-medium">
-                              {spaceNumber}
-                            </span>
+                            <span className="text-gray-700 font-medium">{spaceNumber}</span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-gray-700">
-                              {hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}
-                            </span>
+                            <span className="text-gray-700">{hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}</span>
                           </td>
                           <td className="py-3 px-4">
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs ${
-                                duration > 120 ? 'border-orange-300 text-orange-700 bg-orange-50' : 
-                                'border-green-300 text-green-700 bg-green-50'
-                              }`}
-                            >
+                            <Badge variant="outline" className={`text-xs ${duration > 120 ? 'border-orange-300 text-orange-700 bg-orange-50' : 'border-green-300 text-green-700 bg-green-50'}`}>
                               {duration > 120 ? 'Estancia larga' : 'Normal'}
                             </Badge>
                           </td>
                         </tr>
-                      )
+                      );
                     })}
                   </tbody>
                 </table>
               </div>
               {activeSessions.length > 6 && (
                 <div className="mt-4 text-center border-t border-gray-200 pt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/vehicles/exit')}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigate('/vehicles/exit')}>
                     Ver todos los vehículos ({activeSessions.length})
                   </Button>
                 </div>
@@ -517,5 +433,5 @@ export function Dashboard() {
         )}
       </div>
     </Layout>
-  )
+  );
 }

@@ -1,6 +1,7 @@
 import express from 'express';
 import { parkingSpaces, parkingSessions, users, vehicles } from '../data/mockData.js';
 import { verifyToken } from './auth.js';
+import { requireAdmin, requireAdminOrOperator } from '../middleware/roleAuth.js';
 
 const router = express.Router();
 

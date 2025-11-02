@@ -80,11 +80,7 @@ export function VehicleEntry() {
 
   const loadInitialData = async () => {
     console.log('🔄 DEBUG: Cargando datos iniciales...');
-    await Promise.all([
-      loadSpaces(),
-      loadActiveSessions(),
-      loadVisitors()
-    ]);
+    await Promise.all([loadSpaces(), loadActiveSessions(), loadVisitors()]);
   };
 
   const loadSpaces = async () => {
@@ -107,21 +103,21 @@ export function VehicleEntry() {
       const response = await parkingService.getAllParkingSessions();
       if (response.success && response.data) {
         console.log('📊 DEBUG: Total de sesiones obtenidas de la API:', response.data.length);
-        
+
         // Mostrar algunos ejemplos de status para debug
-        const statusExamples = response.data.slice(0, 3).map(session => ({
+        const statusExamples = response.data.slice(0, 3).map((session) => ({
           id: session.id,
           status: session.status,
           visitorId: session.visitorId,
-          licensePlate: session.licensePlate
+          licensePlate: session.licensePlate,
         }));
         console.log('📊 DEBUG: Ejemplos de status de sesiones:', statusExamples);
-        
+
         // Filtrar solo las sesiones activas - CORREGIDO: usar 'active' en minúsculas
-        const activeSessions = response.data.filter(session => session.status === 'active');
+        const activeSessions = response.data.filter((session) => session.status === 'active');
         setActiveSessions(activeSessions);
         console.log('📊 DEBUG: Sesiones activas filtradas exitosamente:', activeSessions.length);
-        
+
         // Mostrar detalles de sesiones activas para debug
         if (activeSessions.length > 0) {
           console.log('📊 DEBUG: Primeras sesiones activas:', activeSessions.slice(0, 3));
@@ -177,8 +173,8 @@ export function VehicleEntry() {
 
       // PASO 1: Buscar primero en los datos locales de visitantes
       console.log('🔍 Buscando visitante por DNI en datos locales:', formData.userDni);
-      const localVisitor = visitors.find(v => v.dni === formData.userDni);
-      
+      const localVisitor = visitors.find((v) => v.dni === formData.userDni);
+
       if (localVisitor) {
         console.log('✅ Visitante encontrado en datos locales:', localVisitor);
         visitor = localVisitor;
@@ -186,7 +182,7 @@ export function VehicleEntry() {
         // PASO 2: Si no se encuentra localmente, buscar en la API
         console.log('🌐 Visitante no encontrado localmente, buscando en API...');
         const visitorResponse = await parkingService.getVisitorByDni(formData.userDni);
-        
+
         if (visitorResponse.success && visitorResponse.data) {
           console.log('✅ Visitante encontrado en API:', visitorResponse.data);
           visitor = visitorResponse.data;
@@ -201,8 +197,8 @@ export function VehicleEntry() {
         console.log('🔍 Verificando sesiones activas para visitante ID:', visitor.id);
         console.log('🔍 Total de sesiones activas disponibles:', activeSessions.length);
         console.log('🔍 Sesiones activas completas:', activeSessions);
-        
-        const visitorActiveSessions = activeSessions.filter(session => {
+
+        const visitorActiveSessions = activeSessions.filter((session) => {
           console.log(`🔍 Comparando: session.visitorId=${session.visitorId} con visitor.id=${visitor.id}, session.status='${session.status}'`);
           return session.visitorId === visitor.id && session.status === 'active';
         });
@@ -218,9 +214,9 @@ export function VehicleEntry() {
             dni: visitor.dni,
             fullName: fullName,
             status: 'CON VEHÍCULO ESTACIONADO',
-            licensePlate: activeSession.licensePlate || 'N/A',
-            parkingSpace: activeSession.parkingSpaceId || 'N/A',
-            entryTime: activeSession.entryTime || 'N/A',
+            licensePlate: activeSession.licensePlate || '',
+            parkingSpace: activeSession.parkingSpaceId || '',
+            entryTime: activeSession.entryTime || '',
           };
 
           setVisitorSummary(summary);
@@ -280,9 +276,7 @@ export function VehicleEntry() {
 
     // PASO 1: Verificar si la placa ya está en uso usando datos locales
     console.log('🔍 Verificando placa en sesiones activas locales:', formData.licensePlate);
-    const existingSession = activeSessions.find(session => 
-      session.licensePlate === formData.licensePlate && session.status === 'active'
-    );
+    const existingSession = activeSessions.find((session) => session.licensePlate === formData.licensePlate && session.status === 'active');
 
     if (existingSession) {
       console.log('⚠️ Placa encontrada en sesiones activas locales:', existingSession);
@@ -402,7 +396,7 @@ export function VehicleEntry() {
 
     try {
       // Buscar el espacio seleccionado para obtener su ID real
-      const selectedSpaceObject = spaces.find(s => s.spaceNumber === selectedSpace);
+      const selectedSpaceObject = spaces.find((s) => s.spaceNumber === selectedSpace);
       if (!selectedSpaceObject) {
         toast.error('Error: No se pudo encontrar el espacio seleccionado');
         setIsLoading(false);

@@ -61,9 +61,7 @@ export function VehicleExit() {
       if (response.success && response.data) {
         // Handle nested structure: response.data.data
         const responseData = response.data as { data?: Visitor[] } | Visitor[];
-        const visitorsArray = Array.isArray(responseData) 
-          ? responseData 
-          : (responseData as { data?: Visitor[] }).data || [];
+        const visitorsArray = Array.isArray(responseData) ? responseData : (responseData as { data?: Visitor[] }).data || [];
         setVisitors(visitorsArray);
         console.log('👥 DEBUG: Visitantes cargados exitosamente:', visitorsArray.length);
       } else {
@@ -107,23 +105,23 @@ export function VehicleExit() {
 
   // Funciones helper para cruzar datos
   const getVisitorBySession = (session: ParkingSession): Visitor | null => {
-    return visitors.find(visitor => visitor.id === session.visitorId) || null;
+    return visitors.find((visitor) => visitor.id === session.visitorId) || null;
   };
 
   const getParkingSpaceBySession = (session: ParkingSession): ParkingSpace | null => {
-    return parkingSpaces.find(space => space.id === session.parkingSpaceId) || null;
+    return parkingSpaces.find((space) => space.id === session.parkingSpaceId) || null;
   };
 
   const getSessionDisplayInfo = (session: ParkingSession) => {
     const visitor = getVisitorBySession(session);
     const space = getParkingSpaceBySession(session);
-    
+
     return {
       visitor,
       space,
       spaceNumber: space?.spaceNumber || session.parkingSpaceId,
       visitorName: visitor ? `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}` : 'Visitante no encontrado',
-      visitorDni: visitor?.dni || 'DNI no disponible'
+      visitorDni: visitor?.dni || 'DNI no disponible',
     };
   };
 
@@ -158,7 +156,7 @@ export function VehicleExit() {
         console.log('🔍 DEBUG: Total sesiones cargadas:', sessions.length);
 
         // 1. Buscar visitante por DNI en el array local
-        let visitor = visitors.find(v => v.dni === searchValue);
+        let visitor = visitors.find((v) => v.dni === searchValue);
         console.log('🔍 DEBUG: Visitante encontrado localmente:', visitor);
 
         // 2. Si no se encuentra localmente, buscar en API
@@ -183,7 +181,7 @@ export function VehicleExit() {
 
         // 3. Buscar sesiones activas por visitorId
         console.log('🔍 DEBUG: Buscando sesiones activas para visitorId:', visitor.id);
-        const activeSessions = sessions.filter(s => s.visitorId === visitor.id && s.status === 'active');
+        const activeSessions = sessions.filter((s) => s.visitorId === visitor.id && s.status === 'active');
         console.log('🔍 DEBUG: Sesiones activas encontradas:', activeSessions);
 
         if (activeSessions.length === 0) {
@@ -192,15 +190,15 @@ export function VehicleExit() {
         }
 
         // 4. Construir vehículos para cada sesión activa
-        const constructedVehicles: Vehicle[] = activeSessions.map(session => ({
+        const constructedVehicles: Vehicle[] = activeSessions.map((session) => ({
           id: 0, // No necesario para el proceso de salida
           licensePlate: session.licensePlate,
           ownerDni: visitor.dni,
           ownerName: `${visitor.firstName} ${visitor.paternalLastName} ${visitor.maternalLastName}`,
           vehicleType: 'AUTO', // Valor por defecto
-          color: 'N/A', // No disponible en sesión
-          brand: 'N/A', // No disponible en sesión
-          model: 'N/A', // No disponible en sesión
+          color: '', // No disponible en sesión
+          brand: '', // No disponible en sesión
+          model: '', // No disponible en sesión
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
         }));
@@ -278,9 +276,9 @@ export function VehicleExit() {
           ownerDni: finalVisitor.dni,
           ownerName: `${finalVisitor.firstName} ${finalVisitor.paternalLastName} ${finalVisitor.maternalLastName}`,
           vehicleType: 'AUTO', // Valor por defecto
-          color: 'N/A', // No disponible en sesión
-          brand: 'N/A', // No disponible en sesión
-          model: 'N/A', // No disponible en sesión
+          color: '', // No disponible en sesión
+          brand: '', // No disponible en sesión
+          model: '', // No disponible en sesión
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
         };
@@ -317,7 +315,7 @@ export function VehicleExit() {
     // Actualizar el tipo de búsqueda y valor para mostrar en la UI
     setSearchType('plate');
     setSearchValue(session.licensePlate);
-    
+
     // Resetear búsqueda anterior
     resetSearch();
 
@@ -363,9 +361,9 @@ export function VehicleExit() {
         ownerDni: finalVisitor.dni,
         ownerName: `${finalVisitor.firstName} ${finalVisitor.paternalLastName} ${finalVisitor.maternalLastName}`,
         vehicleType: 'AUTO', // Valor por defecto
-        color: 'N/A', // No disponible en sesión
-        brand: 'N/A', // No disponible en sesión
-        model: 'N/A', // No disponible en sesión
+        color: '', // No disponible en sesión
+        brand: '', // No disponible en sesión
+        model: '', // No disponible en sesión
         createdAt: session.createdAt,
         updatedAt: session.updatedAt,
       };
@@ -387,42 +385,42 @@ export function VehicleExit() {
     const parseEntryTime = (timeStr: string): Date => {
       // Intentar diferentes formatos de fecha
       let parsedDate = new Date(timeStr);
-      
+
       // Si la fecha no es válida, intentar otros formatos
       if (isNaN(parsedDate.getTime())) {
         // Intentar formato ISO con zona horaria
         parsedDate = new Date(timeStr + 'Z');
-        
+
         if (isNaN(parsedDate.getTime())) {
           // Si aún no es válida, usar fecha actual como fallback
           console.warn('Could not parse entryTime:', timeStr, 'Using current time as fallback');
           parsedDate = new Date();
         }
       }
-      
+
       return parsedDate;
     };
 
     // Parsear la fecha de entrada
     const entry = parseEntryTime(entryTime);
     const now = new Date();
-    
+
     // Calcular duración en milisegundos
     let diffMs = now.getTime() - entry.getTime();
-    
+
     // Asegurar que la duración no sea negativa (manejar problemas de zona horaria)
     if (diffMs < 0) {
       // Si la duración es negativa, probablemente hay un problema de zona horaria
       // Intentar ajustar por diferencias de zona horaria comunes
       const timezoneOffset = now.getTimezoneOffset() * 60 * 1000; // convertir a milisegundos
       diffMs = now.getTime() - entry.getTime() + timezoneOffset;
-      
+
       // Si aún es negativa, establecer en 0
       if (diffMs < 0) {
         diffMs = 0;
       }
     }
-    
+
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -587,9 +585,9 @@ export function VehicleExit() {
                               <div>
                                 <p className="font-medium">{vehicle.licensePlate}</p>
                                 <p className="text-sm text-gray-600">Espacio: {session?.parkingSpaceId}</p>
-                                <p className="text-sm text-gray-600">Ingreso: {session ? new Date(session.entryTime).toLocaleString() : 'N/A'}</p>
+                                <p className="text-sm text-gray-600">Ingreso: {session ? new Date(session.entryTime).toLocaleString() : ''}</p>
                               </div>
-                              <div className="text-xs text-gray-500">{session ? calculateDuration(session.entryTime) : 'N/A'}</div>
+                              <div className="text-xs text-gray-500">{session ? calculateDuration(session.entryTime) : ''}</div>
                             </div>
                           </div>
                         );
@@ -660,22 +658,14 @@ export function VehicleExit() {
                     {activeSessions.map((session) => {
                       const sessionInfo = getSessionDisplayInfo(session);
                       return (
-                        <div
-                          key={session.id}
-                          className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => selectVehicleFromList(session)}
-                        >
+                        <div key={session.id} className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => selectVehicleFromList(session)}>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">
-                                  Espacio {sessionInfo.spaceNumber}
-                                </div>
-                                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
-                                  {session.licensePlate}
-                                </div>
+                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">Espacio {sessionInfo.spaceNumber}</div>
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">{session.licensePlate}</div>
                               </div>
-                              
+
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                                 <div>
                                   <p className="text-gray-500">Visitante:</p>
@@ -689,7 +679,7 @@ export function VehicleExit() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center text-green-600">
                               <Car className="w-4 h-4" />
                             </div>
