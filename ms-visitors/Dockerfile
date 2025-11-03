@@ -1,5 +1,5 @@
 # Multi-stage build para optimizar el tamaño de la imagen
-FROM openjdk:21-jdk-slim as builder
+FROM eclipse-temurin:21-jdk AS builder
 
 # Instalar Maven
 RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
@@ -7,11 +7,8 @@ RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de configuración de Maven
+# Copiar archivo de configuración de Maven
 COPY pom.xml .
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
 
 # Descargar dependencias (se cachea si no cambia pom.xml)
 RUN mvn dependency:go-offline -B
@@ -23,7 +20,7 @@ COPY src src
 RUN mvn clean package -DskipTests
 
 # Etapa de runtime
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:21-jre
 
 # Crear usuario no-root para seguridad
 RUN groupadd -r spring && useradd -r -g spring spring

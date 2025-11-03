@@ -37,12 +37,11 @@ RUN chown spring:spring app.jar
 # Cambiar a usuario no-root
 USER spring
 
-# Exponer puerto del microservicio
-EXPOSE 8081
+# Exponer puerto del API Gateway
+EXPOSE 8000
 
 # Variables de entorno por defecto
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
-ENV SPRING_PROFILES_ACTIVE=docker
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
