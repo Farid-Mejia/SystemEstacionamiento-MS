@@ -57,12 +57,12 @@
 			<scope>runtime</scope>
 		</dependency>
 		
-		<!-- H2 Database para testing (comentado para usar MySQL) -->
-		<!--<dependency>
+		<!-- H2 Database para testing -->
+		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>-->
+			<scope>test</scope>
+		</dependency>
 
 		<!-- JWT -->
 		<dependency>
